@@ -1,0 +1,92 @@
+
+General:
+    ☐ Fully implement clock cycle tracking
+
+Addressing modes:
+    ☐ IMP - Implied
+    ✔ IMM - Immediate @done(23-11-06 19:01)
+    ☐ ZP0 - Zero Page
+    ☐ ZPX - Zero Page, X
+    ☐ ZPY - Zero Page, Y
+    ☐ REL - Relative
+    ☐ ABS - Absolute
+    ☐ ABX - Absolute, X
+    ☐ ABY - Absolute, Y
+    ☐ IND - Indirect
+    ☐ IZX - Indirect, X
+    ☐ IZY - Indirect, Y
+
+Instructions:
+    GROUP ONE:
+        ✔ 000	ORA @done(23-11-06 18:55)
+        ☐ 001	AND
+        ☐ 010	EOR
+        ☐ 011	ADC
+        ☐ 100	STA
+        ✔ 101	LDA @done(23-11-06 18:55)
+        ☐ 110	CMP
+        ☐ 111	SBC
+
+    GROUP TWO:
+        ☐ 000	ASL
+        ☐ 001	ROL
+        ☐ 010	LSR
+        ☐ 011	ROR
+        ☐ 100	STX
+        ☐ 101	LDX
+        ☐ 110	DEC
+        ☐ 111	INC
+
+    GROUP THREE:
+        ☐ 001	BIT
+        ☐ 010	JMP
+        ☐ 011	JMP (abs)
+        ☐ 100	STY
+        ☐ 101	LDY
+        ☐ 110	CPY
+        ☐ 111	CPX
+
+    CONDITIONALS:
+        ☐ 10   BPL	
+        ☐ 30   BMI	
+        ☐ 50   BVC	
+        ☐ 70   BVS	
+        ☐ 90   BCC	
+        ☐ B0   BCS 	
+        ☐ D0   BNE	
+        ☐ F0   BEQ
+
+    INTERRUPT/SUBROUTINE:
+        ☐ 00   BRK
+        ☐ 20   JSR abs
+        ☐ 40   RTI
+        ☐ 60   RTS
+
+    SINGLE-BYTE:
+        ☐ 08  PHP
+        ☐ 28  PLP
+        ☐ 48  PHA 	
+        ☐ 68  PLA 	
+        ☐ 88  DEY 	
+        ☐ A8  TAY 	
+        ☐ C8  INY 	
+        ☐ E8  INX    		 	 	 	 	 	
+
+        ☐ 18  CLC 	
+        ☐ 38  SEC 	
+        ☐ 58  CLI 	
+        ☐ 78  SEI 	
+        ☐ 98  TYA 	
+        ☐ B8  CLV 	
+        ☐ D8  CLD 	
+        ☐ F8  SED
+
+        ☐ 8A  TXA 	
+        ☐ 9A  TXS 	
+        ☐ AA  TAX 	
+        ☐ BA  TSX 	
+        ☐ CA  DEX 	
+        ☐ EA  NOP
+
+         	 	 	 	 	
+

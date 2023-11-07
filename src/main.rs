@@ -57,8 +57,10 @@ fn main()
     bus.write(0xFFFC, (addr & 0x00FF) as u8);  // low byte
     bus.write(0xFFFD, ((addr & 0xFF00) >> 8) as u8);  // high byte
 
+    ///////////////////////////////
     // write the program to memory
-
+    //////////////////////////////
+    
     // LDA #9
     bus.write(addr, 0xA9); // LDA - Immediate mode
     bus.write(addr + 1, 0x09);  // Argument
@@ -67,6 +69,10 @@ fn main()
     bus.write(addr + 2, 0x09); // ORA - Immediate mode
     bus.write(addr + 3, 0x02);  // Argument
 
+    ////////////////////
+    // Run the program!
+    ////////////////////
+    
     // Restart cpu
     cpu.reset(&mut bus);
 

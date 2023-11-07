@@ -1,4 +1,5 @@
 
+#![allow(dead_code, non_snake_case)]
 
 use super::{R6502, Bus};
 
