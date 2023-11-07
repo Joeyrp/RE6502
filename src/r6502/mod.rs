@@ -127,7 +127,9 @@ impl R6502
 
 fn execute(instruction: u8, cpu: &mut R6502, bus: &mut dyn Bus)
 {
-
+    // Instruction decoding:
+    // https://llx.com/Neil/a2/opcodes.html
+    
     let group_code = instruction & 0x03; // group one has a bit pattern of xxxxxx01
     match group_code
     {

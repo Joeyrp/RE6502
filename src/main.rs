@@ -42,11 +42,63 @@ fn main()
     cpu.clear_flag(Flags::I);
     println!("\nI Flag is: {}", cpu.check_flag(Flags::I));
 
+    // run_simple_or_program(&mut cpu);
+    run_addition_test(&mut cpu);
+
+    println!("\nFinished.");
+}
+
+fn run_addition_test(cpu: &mut R6502)
+{
+    println!("\nRunning a simple addition test with no overflow or carry: 8 + 23");
+
+     //////////////////////////////////
+    // Setup Bus with program address
+    //////////////////////////////////
+
+    let mut bus = RAMBus::new();
+
+    // program address
+    let addr = 0x0020 as u16;
+
+    // Set the program counter address
+    bus.write(0xFFFC, (addr & 0x00FF) as u8);  // low byte
+    bus.write(0xFFFD, ((addr & 0xFF00) >> 8) as u8);  // high byte
+
+    ///////////////////////////////
+    // write the program to memory
+    //////////////////////////////
+    
+    // LDA #8
+    bus.write(addr, 0xA9); // LDA - Immediate mode
+    bus.write(addr + 1, 0x08);  // Argument
+
+    // ADC #17 [23 dec]
+    bus.write(addr + 2, 0x69); // ADC - Immediate mode
+    bus.write(addr + 3, 0x17);  // Argument
+
+    ////////////////////
+    // Run the program!
+    ////////////////////
+    
+    // Restart cpu
+    cpu.reset(&mut bus);
+
+    // Clock the cpu twice (Clock essentially runs one full instruction)
+    cpu.clock(&mut bus);
+    cpu.clock(&mut bus);
+
+    println!("\nProgram result, A register: {}", cpu.a);
+
+}
+
+fn run_simple_or_program(cpu: &mut R6502)
+{
     println!("\nRunning a very simple test program:\n\tLDA #9\n\tORA #2\n Result should be 11 in the A register");
 
-    //////////////////////////
-    // Setup Bus with program
-    //////////////////////////
+    //////////////////////////////////
+    // Setup Bus with program address
+    //////////////////////////////////
 
     let mut bus = RAMBus::new();
 
@@ -81,6 +133,4 @@ fn main()
     cpu.clock(&mut bus);
 
     println!("\nProgram result, A register: {}", cpu.a);
-
-    println!("\nFinished.");
 }

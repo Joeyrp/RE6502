@@ -4,20 +4,8 @@
 
 use super::{R6502, Bus, Flags};
 
-// uint8_t ADC();	uint8_t AND();	uint8_t ASL();	uint8_t BCC();
-// uint8_t BCS();	uint8_t BEQ();	uint8_t BIT();	uint8_t BMI();
-// uint8_t BNE();	uint8_t BPL();	uint8_t BRK();	uint8_t BVC();
-// uint8_t BVS();	uint8_t CLC();	uint8_t CLD();	uint8_t CLI();
-// uint8_t CLV();	uint8_t CMP();	uint8_t CPX();	uint8_t CPY();
-// uint8_t DEC();	uint8_t DEX();	uint8_t DEY();	uint8_t EOR();
-// uint8_t INC();	uint8_t INX();	uint8_t INY();	uint8_t JMP();
-// uint8_t JSR();	uint8_t LDA();	uint8_t LDX();	uint8_t LDY();
-// uint8_t LSR();	uint8_t NOP();	uint8_t ORA();	uint8_t PHA();
-// uint8_t PHP();	uint8_t PLA();	uint8_t PLP();	uint8_t ROL();
-// uint8_t ROR();	uint8_t RTI();	uint8_t RTS();	uint8_t SBC();
-// uint8_t SEC();	uint8_t SED();	uint8_t SEI();	uint8_t STA();
-// uint8_t STX();	uint8_t STY();	uint8_t TAX();	uint8_t TAY();
-// uint8_t TSX();	uint8_t TXA();	uint8_t TXS();	uint8_t TYA();
+// Instruction decoding:
+// https://llx.com/Neil/a2/opcodes.html
 
 // GROUP ONE
 // 000	ORA
@@ -65,17 +53,64 @@ impl Instructions
 
     pub fn AND(cpu: &mut R6502, bus: &mut dyn Bus)
     {
+        cpu.a = cpu.a & cpu.working_data;
+        if cpu.a == 0
+        {
+            cpu.set_flag(Flags::Z);
+        }
 
+        if cpu.a & 0x80 != 0
+        {
+            cpu.set_flag(Flags::N);
+        }
     }
 
     pub fn EOR(cpu: &mut R6502, bus: &mut dyn Bus)
     {
+        cpu.a = cpu.a ^ cpu.working_data;
+        if cpu.a == 0
+        {
+            cpu.set_flag(Flags::Z);
+        }
 
+        if cpu.a & 0x80 != 0
+        {
+            cpu.set_flag(Flags::N);
+        }
     }
 
+    // Using a technique written javidx9
+    // The code in this function falls under the License (OLC-3) SEE LICENSE FILE
+    // https://github.com/OneLoneCoder/olcNES/blob/master/Part%232%20-%20CPU/olc6502.cpp#L659
     pub fn ADC(cpu: &mut R6502, bus: &mut dyn Bus)
     {
+        // 16 bit addition to capture the carry easier
+        let temp: u16 = cpu.a as u16 + cpu.working_data as u16;
 
+        if temp > 255
+        {
+            cpu.set_flag(Flags::C);
+        }
+        
+        if temp == 0
+        {
+            cpu.set_flag(Flags::Z);
+        }
+
+        let did_overflow = (!((cpu.a as u16) ^ (cpu.working_data as u16)) & ((cpu.a as u16) ^ temp)) & 0x0080;
+        cpu.clear_flag(Flags::V);
+        if did_overflow > 0
+        {
+            cpu.set_flag(Flags::V);
+        }
+
+        cpu.clear_flag(Flags::N);
+        if temp & 0x80 > 0
+        {
+            cpu.set_flag(Flags::N);
+        }
+
+        cpu.a = (temp & 0x00FF) as u8;
     }
 
     pub fn STA(cpu: &mut R6502, bus: &mut dyn Bus)

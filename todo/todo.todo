@@ -1,6 +1,8 @@
 
 General:
     ☐ Fully implement clock cycle tracking
+    ☐ Add a disassembler for debugging
+        ☐ Debug data lookup for instructions
 
 Addressing modes:
     ☐ IMP - Implied

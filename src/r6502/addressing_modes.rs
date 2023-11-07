@@ -3,6 +3,8 @@
 
 use super::{R6502, Bus};
 
+// Instruction decoding:
+// https://llx.com/Neil/a2/opcodes.html
 
 // GROUP ONE ADDRESS MODES
 // 000	(zero page,X)       IZX
@@ -38,6 +40,7 @@ impl AddressingModes
 
 
 }
+
 impl AddressingModes
 {
     // This is also the accumulator mode
