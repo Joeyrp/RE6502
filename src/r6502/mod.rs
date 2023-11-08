@@ -1,5 +1,5 @@
 
-#![allow(dead_code)]
+#![allow(unused_variables, dead_code, non_snake_case)]
 
 mod addressing_modes;
 mod instructions;
@@ -32,9 +32,20 @@ pub enum Flags
     N = (1 << 7),   // Negative Flag
 }
 
+pub enum Registers
+{
+    A,
+    X,
+    Y,
+    PC,
+    SP,
+    STATUS,
+}
+
+#[derive(Clone, Copy, PartialEq)]
 pub struct R6502
 {
-    pub a: u8,      // Accumulator
+    a: u8,      // Accumulator
     x: u8,      // X Register
     y: u8,      // Y Register
 
@@ -45,9 +56,8 @@ pub struct R6502
     cycles: u32, // Track cycles
 
     // Helper Vars
-    working_data: u8,   // value fetched for the ALU
-    addr_abs: u16,
-    addr_rel: u16,
+    working_data: u16,   // value fetched for the ALU
+    // working_addr: u16,
 }
 
 impl R6502
@@ -55,7 +65,38 @@ impl R6502
     // constructor
     pub fn new() -> R6502
     {
-        R6502 { a: 0, x: 0, y: 0, pc: 0, sp: 0, status: 0, cycles: 0, working_data: 0, addr_abs: 0, addr_rel: 0 }
+        R6502 { a: 0, x: 0, y: 0, pc: 0, sp: 0, status: 0, cycles: 0, working_data: 0 }
+    }
+
+    // Debug Access
+    pub fn debug_get_reg(&self, reg: Registers) -> u16
+    {
+        match reg
+        {
+            Registers::A => self.a as u16,
+            Registers::X => self.x as u16,
+            Registers::Y => self.y as u16,
+
+            Registers::PC => self.pc,
+            Registers::SP => self.sp as u16,
+
+            Registers::STATUS => self.status as u16,
+        }
+    }
+
+    pub fn debug_set_reg(&mut self, reg: Registers, value: u16)
+    {
+        match reg
+        {
+            Registers::A => self.a = value as u8,
+            Registers::X => self.x = value as u8,
+            Registers::Y => self.y = value as u8,
+
+            Registers::PC => self.pc = value,
+            Registers::SP => self.sp  = value as u8,
+
+            Registers::STATUS => self.status = value as u8,
+        }
     }
 
     // signals
@@ -90,8 +131,7 @@ impl R6502
 
         // internal helper variables
         self.working_data = 0;
-        self.addr_abs = 0;
-        self.addr_rel = 0;
+        // self.working_addr = 0;
 
         self.cycles = 8;
     }

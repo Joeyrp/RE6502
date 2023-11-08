@@ -1,6 +1,6 @@
 
 
-
+mod tests;
 mod r6502;
 use r6502::{R6502, Flags, Bus};
 
@@ -42,8 +42,10 @@ fn main()
     cpu.clear_flag(Flags::I);
     println!("\nI Flag is: {}", cpu.check_flag(Flags::I));
 
-    // run_simple_or_program(&mut cpu);
+    run_simple_or_program(&mut cpu);
     run_addition_test(&mut cpu);
+
+
 
     println!("\nFinished.");
 }
@@ -52,7 +54,7 @@ fn run_addition_test(cpu: &mut R6502)
 {
     println!("\nRunning a simple addition test with no overflow or carry: 8 + 23");
 
-     //////////////////////////////////
+    //////////////////////////////////
     // Setup Bus with program address
     //////////////////////////////////
 
@@ -77,6 +79,11 @@ fn run_addition_test(cpu: &mut R6502)
     bus.write(addr + 2, 0x69); // ADC - Immediate mode
     bus.write(addr + 3, 0x17);  // Argument
 
+    // Store result into memory to also test the STA instruction
+    bus.write(addr + 4, 0x85); // STA - Zero Page mode
+    bus.write(addr + 5, 0x02);  // Argument
+
+
     ////////////////////
     // Run the program!
     ////////////////////
@@ -84,11 +91,14 @@ fn run_addition_test(cpu: &mut R6502)
     // Restart cpu
     cpu.reset(&mut bus);
 
-    // Clock the cpu twice (Clock essentially runs one full instruction)
+    // Clock the cpu to run the program (Clock essentially runs one full instruction)
+    cpu.clock(&mut bus);
     cpu.clock(&mut bus);
     cpu.clock(&mut bus);
 
-    println!("\nProgram result, A register: {}", cpu.a);
+    println!("\nProgram result, A register: {}", cpu.debug_get_reg(r6502::Registers::A));
+    let result = bus.read(0x0002);
+    println!("\nValue at 0x0002: {}", result);
 
 }
 
@@ -132,5 +142,5 @@ fn run_simple_or_program(cpu: &mut R6502)
     cpu.clock(&mut bus);
     cpu.clock(&mut bus);
 
-    println!("\nProgram result, A register: {}", cpu.a);
+    println!("\nProgram result, A register: {}", cpu.debug_get_reg(r6502::Registers::A));
 }

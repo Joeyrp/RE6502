@@ -39,7 +39,8 @@ impl Instructions
     // GROUP ONE
     pub fn ORA(cpu: &mut R6502, _bus: &mut dyn Bus)
     {
-        cpu.a = cpu.a | cpu.working_data;
+        let data = cpu.working_data as u8;
+        cpu.a = cpu.a | data;
         if cpu.a == 0
         {
             cpu.set_flag(Flags::Z);
@@ -53,7 +54,8 @@ impl Instructions
 
     pub fn AND(cpu: &mut R6502, bus: &mut dyn Bus)
     {
-        cpu.a = cpu.a & cpu.working_data;
+        let data = cpu.working_data as u8;
+        cpu.a = cpu.a & data;
         if cpu.a == 0
         {
             cpu.set_flag(Flags::Z);
@@ -67,7 +69,8 @@ impl Instructions
 
     pub fn EOR(cpu: &mut R6502, bus: &mut dyn Bus)
     {
-        cpu.a = cpu.a ^ cpu.working_data;
+        let data = cpu.working_data as u8;
+        cpu.a = cpu.a ^ data;
         if cpu.a == 0
         {
             cpu.set_flag(Flags::Z);
@@ -85,7 +88,7 @@ impl Instructions
     pub fn ADC(cpu: &mut R6502, bus: &mut dyn Bus)
     {
         // 16 bit addition to capture the carry easier
-        let temp: u16 = cpu.a as u16 + cpu.working_data as u16;
+        let temp: u16 = cpu.a as u16 + cpu.working_data;
 
         if temp > 255
         {
@@ -115,12 +118,13 @@ impl Instructions
 
     pub fn STA(cpu: &mut R6502, bus: &mut dyn Bus)
     {
-
+        bus.write(cpu.working_data, cpu.a);
     }
 
     pub fn LDA(cpu: &mut R6502, bus: &mut dyn Bus)
     {
-        cpu.a = cpu.working_data;
+        let data = cpu.working_data as u8;
+        cpu.a = data;
 
         if cpu.a == 0
         {
