@@ -229,3 +229,41 @@ fn IZX()
     // Is 0x08 in the A register?
     assert_eq!(0x08, cpu.debug_get_reg(Registers::A));
 }
+
+#[test]
+fn IZY() 
+{
+    let mut cpu = R6502::new();
+    let mut bus = RAMBus::new();
+
+    // program address
+    let addr = 0x0020 as u16;
+
+    // Set the program counter address
+    bus.write(0xFFFC, (addr & 0x00FF) as u8);  // low byte
+    bus.write(0xFFFD, ((addr & 0xFF00) >> 8) as u8);  // high byte
+
+    // Manually put 0x08 into memory
+    bus.write(0x020B, 0x08);
+
+    // Manuall put 0x01FC into the Zero page at 0x000A
+    // This will be added to the Y register (which will store 0x0F)
+    bus.write(0x000A, 0xFC);    // Pointer lo byte
+    bus.write(0x000B, 0x01);    // Pointer hi byte
+
+    // Program to load 0x08 into the accumulator
+    bus.write(addr, 0xB1); // LDA - Indirect, Y mode
+    bus.write(addr + 1, 0x0A);  // Argument - Pointer into the Zero Page
+
+     // Restart cpu
+    cpu.reset(&mut bus);
+    
+    // manually setup the cpu registers
+    cpu.debug_set_reg(Registers::Y, 0x0F); // Offset of the value at the zero page address
+
+    // Clock the cpu to run the program (Clock essentially runs one full instruction)
+    cpu.clock(&mut bus);
+
+    // Is 0x08 in the A register?
+    assert_eq!(0x08, cpu.debug_get_reg(Registers::A));
+}

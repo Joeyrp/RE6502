@@ -199,9 +199,39 @@ impl AddressingModes
         ModeID::IZX
     }
 
+
+    // Indirect Indexed Addressing (IND), Y
+    // In indirect indexed addressing, the second byte of the instruction points to
+    // a memory location in page zero. The contents of this memory location are added to
+    // the contents of the Y register. The result is the low order byte of the effective address.
+    // The carry from this addition is added to the contents of the next page zero memory
+    // location, to form the high order byte of the effective address.
+    //
+    // Info from:
+    // https://web.archive.org/web/20221112231348if_/http://archive.6502.org/datasheets/rockwell_r650x_r651x.pdf
     pub fn IZY(cpu: &mut R6502, bus: &mut dyn Bus) -> ModeID
     {
-        
+        // zp_pointer points to a location in zero page
+        let zp_pointer = bus.read(cpu.pc) as u16;
+        cpu.pc += 1;
+
+        // The value at zp_pointer is added to the Y register
+        let zp_value = bus.read(zp_pointer) as u16;
+        let sum = zp_value + cpu.y as u16;
+
+        // The sum with the carry discarded is the lo byte
+        let lo_byte = sum & 0x00FF;
+
+        // The carry plus the value at the next zero page address is the hi byte
+        let zp_next = bus.read(zp_pointer + 1) as u16;
+        let temp = (sum & 0xFF00) >> 0x08;
+        let temp2 = temp + zp_next;
+        let hi_byte: u8 = (((sum & 0xFF00) >> 0x08) + zp_next) as u8;
+
+        // Store the final address and read the data
+        cpu.working_addr = ((hi_byte as u16) << 0x08) | lo_byte;
+        cpu.working_data = bus.read(cpu.working_addr) as u16;
+
         ModeID::IZY
     }
 }
