@@ -168,9 +168,34 @@ impl AddressingModes
         ModeID::IND
     }
 
+
+    // Indexed Indirect Addressing (IND, X)
+    // In indexed indirect addressing (referred to as (Indirect, X)), the second byte of the
+    // instruction is added to the contents of the X register, discarding the carry.
+    // The result of the addition points to a memory location on the Zero Page which contains
+    // the low order byte of the effective address. The next memory location in page zero,
+    // contains the high order byte of the effective address. Both memory locations specifying
+    // the effective address must be in the Zero Page.
+    //
+    // Info from:
+    // https://web.archive.org/web/20221112231348if_/http://archive.6502.org/datasheets/rockwell_r650x_r651x.pdf
     pub fn IZX(cpu: &mut R6502, bus: &mut dyn Bus) -> ModeID
     {
-        
+        let offset = bus.read(cpu.pc) as u16;
+        cpu.pc += 1;
+        let mut pointer = cpu.x as u16 + offset;
+
+        // discard the carry and wrap
+        // If the addition goes beyond the Zero Page
+        // it should wrap around back to the beginning
+        pointer = pointer & 0x00FF;
+
+        let lo_byte = bus.read(pointer) as u16;
+        let hi_byte = bus.read(pointer + 1) as u16;
+        cpu.working_addr = (hi_byte << 0x08) | lo_byte;
+
+        cpu.working_data = bus.read(cpu.working_addr) as u16 & 0x00FF;
+
         ModeID::IZX
     }
 

@@ -231,3 +231,45 @@ fn ABY()
     // Is 0x04 in the A register?
     assert_eq!(0x04, cpu.debug_get_reg(Registers::A));
 }
+
+//////////////////////////////////////////////////////////////////////////////
+///     IZX     IZX     IZX     IZX     IZX     IZX     IZX     IZX     IZX
+//////////////////////////////////////////////////////////////////////////////
+
+#[test]
+fn IZX() 
+{
+    let mut cpu = R6502::new();
+    let mut bus = RAMBus::new();
+
+    // program address
+    let addr = 0x0020 as u16;
+
+    // Set the program counter address
+    bus.write(0xFFFC, (addr & 0x00FF) as u8);  // low byte
+    bus.write(0xFFFD, ((addr & 0xFF00) >> 8) as u8);  // high byte
+
+    // Manually put 0x08 into memory in the zero page
+    bus.write(0x010B, 0x06);
+
+    // Manually put 0x010B into the Zero page
+    bus.write(0x000B, 0x0B);
+    bus.write(0x000C, 0x01);
+
+    // Program to 
+    bus.write(addr, 0xE1); //  - Indirect, X mode
+    bus.write(addr + 1, 0x0A);  // Argument - Pointer into the Zero Page
+
+     // Restart cpu
+    cpu.reset(&mut bus);
+    
+    // manually setup the cpu registers
+    cpu.debug_set_reg(Registers::X, 0x01); // Zero Page Pointer offset
+    cpu.debug_set_reg(Registers::A, 0x0A);
+
+    // Clock the cpu to run the program (Clock essentially runs one full instruction)
+    cpu.clock(&mut bus);
+
+    // Is 0x04 in the A register?
+    assert_eq!(0x04, cpu.debug_get_reg(Registers::A));
+}

@@ -567,3 +567,106 @@ fn ABY()
     assert_eq!(0, cpu.check_flag(Flags::Z));
     assert_eq!(1, cpu.check_flag(Flags::N));
 }
+
+//////////////////////////////////////////////////////////////////////////////
+///     IZX     IZX     IZX     IZX     IZX     IZX     IZX     IZX     IZX
+//////////////////////////////////////////////////////////////////////////////
+#[test]
+fn IZX() 
+{
+    let mut cpu = R6502::new();
+    let mut bus = RAMBus::new();
+
+    // program address
+    let addr = 0x0020 as u16;
+
+    // Set the program counter address
+    bus.write(0xFFFC, (addr & 0x00FF) as u8);  // low byte
+    bus.write(0xFFFD, ((addr & 0xFF00) >> 8) as u8);  // high byte
+
+    
+    ///////////////////////
+    // Parameter is less than A reg
+
+    // Manually put 0x05 into memory
+    bus.write(0x010B, 0x05);
+
+    // Manually put 0x010B into the Zero Page
+    bus.write(0x000B, 0x0B);
+    bus.write(0x000C, 0x01);
+
+    // Program to compare 0x05 to 0x10
+    bus.write(addr, 0xC1); // CMP - Indirect, X mode
+    bus.write(addr + 1, 0x0A);  // Argument lo word
+
+     // Restart cpu
+    cpu.reset(&mut bus);
+    
+    // manually setup the cpu registers
+    cpu.debug_set_reg(Registers::X, 0x01);
+    cpu.debug_set_reg(Registers::A, 0x10);
+
+    // Clock the cpu to run the program (Clock essentially runs one full instruction)
+    cpu.clock(&mut bus);
+
+    // C Flag should be 1, Z N Flags should be 0
+    assert_eq!(1, cpu.check_flag(Flags::C));
+    assert_eq!(0, cpu.check_flag(Flags::Z));
+    assert_eq!(0, cpu.check_flag(Flags::N));
+
+    ///////////////////////
+    // Parameter is equal to the A reg
+
+    
+    // Manually put 0x10 into memory
+    bus.write(0x010B, 0x10);
+
+    // Manually put 0x010B into the Zero Page
+    bus.write(0x000B, 0x0B);
+    bus.write(0x000C, 0x01);
+
+    // Program to compare 0x05 to 0x10
+    bus.write(addr, 0xC1); // CMP - Indirect, X mode
+    bus.write(addr + 1, 0x0A);  // Argument lo word
+
+     // Restart cpu
+    cpu.reset(&mut bus);
+    
+    // manually setup the cpu registers
+    cpu.debug_set_reg(Registers::X, 0x01);
+    cpu.debug_set_reg(Registers::A, 0x10);
+
+    // Clock the cpu to run the program (Clock essentially runs one full instruction)
+    cpu.clock(&mut bus);
+
+    // C Z Flags should be 1, N Flag should be 0
+    assert_eq!(1, cpu.check_flag(Flags::C));
+    assert_eq!(1, cpu.check_flag(Flags::Z));
+    assert_eq!(0, cpu.check_flag(Flags::N));
+    
+    ///////////////////////
+    // Parameter is greater than A reg
+
+  
+    // Manually put 0x05 into memory
+    bus.write(0x010B, 0x10);
+
+    // Program to compare 0x05 to 0x10
+    bus.write(addr, 0xC1); // CMP - Indirect, X mode
+    bus.write(addr + 1, 0x0A);  // Argument lo word
+
+     // Restart cpu
+    cpu.reset(&mut bus);
+    
+    // manually setup the cpu registers
+    cpu.debug_set_reg(Registers::X, 0x01);
+    cpu.debug_set_reg(Registers::A, 0x05);
+
+    // Clock the cpu to run the program (Clock essentially runs one full instruction)
+    cpu.clock(&mut bus);
+
+    // C Z Flags should be 0, N Flag should be 1
+    assert_eq!(0, cpu.check_flag(Flags::C));
+    assert_eq!(0, cpu.check_flag(Flags::Z));
+    assert_eq!(1, cpu.check_flag(Flags::N));
+}
