@@ -4,7 +4,7 @@
 mod addressing_modes;
 mod instructions;
 
-use addressing_modes::AddressingModes;
+use addressing_modes::{AddressingModes, ModeID};
 use instructions::Instructions;
 
 pub trait Bus
@@ -56,8 +56,9 @@ pub struct R6502
     cycles: u32, // Track cycles
 
     // Helper Vars
+    addr_mode: ModeID,
     working_data: u16,   // value fetched for the ALU
-    // working_addr: u16,
+    working_addr: u16,
 }
 
 impl R6502
@@ -65,7 +66,7 @@ impl R6502
     // constructor
     pub fn new() -> R6502
     {
-        R6502 { a: 0, x: 0, y: 0, pc: 0, sp: 0, status: 0, cycles: 0, working_data: 0 }
+        R6502 { a: 0, x: 0, y: 0, pc: 0, sp: 0, status: 0, cycles: 0, addr_mode: ModeID::IMP, working_data: 0, working_addr: 0 }
     }
 
     // Debug Access
@@ -157,9 +158,14 @@ impl R6502
         self.status &= !(bit as u8);
     }
 
-    pub fn check_flag(&mut self, bit: Flags) -> bool
+    pub fn check_flag(&mut self, bit: Flags) -> u8
     {
-        self.status & (bit as u8) > 0
+        if self.status & (bit as u8) > 0
+        {
+            return 1;
+        }
+
+        return 0;
     }
 }
 
@@ -187,7 +193,7 @@ fn exe_group_one(instruction: u8, cpu: &mut R6502, bus: &mut dyn Bus)
     let addr_mask = (instruction & 0x1C) >> 2;
     let op_mask = (instruction & 0xE0) >> 5;
     
-    AddressingModes::GROUP_ONE_ADDRS[addr_mask as usize](cpu, bus);
+    cpu.addr_mode = AddressingModes::GROUP_ONE_ADDRS[addr_mask as usize](cpu, bus);
     Instructions::GROUP_ONE_OPS[op_mask as usize](cpu, bus);
 }
 

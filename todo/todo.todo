@@ -36,8 +36,8 @@ Instructions:
         ✔ 011	ADC @done(23-11-06 19:59)
         ✔ 100	STA @done(23-11-07 15:04)
         ✔ 101	LDA @done(23-11-06 18:55)
-        ☐ 110	CMP
-        ☐ 111	SBC
+        ✔ 110	CMP @done(23-11-09 13:24)
+        ✔ 111	SBC @done(23-11-09 13:24)
 
     GROUP TWO:
         ☐ 000	ASL
