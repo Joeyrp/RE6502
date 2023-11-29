@@ -199,6 +199,41 @@ fn exe_group_one(instruction: u8, cpu: &mut R6502, bus: &mut dyn Bus)
 
 fn exe_group_two(instruction: u8, cpu: &mut R6502, bus: &mut dyn Bus)
 {
-    
+    let addr_mask = (instruction & 0x1C) >> 2;
+    let op_mask = (instruction & 0xE0) >> 5;
+
+    // With STX and LDX, "zero page,X" addressing becomes "zero page,Y", and with LDX, "absolute,X" becomes "absolute,Y".
+    const STX_ZPX: u8 = 0x96;
+    const LDX_ZPX: u8 = 0xB6;
+    const LDX_ABX: u8 = 0xBE;
+
+
+    match instruction
+    {
+        STX_ZPX => 
+        {
+            cpu.addr_mode = AddressingModes::ZPY(cpu, bus);
+            Instructions::STX(cpu, bus);
+        },
+
+        LDX_ZPX => 
+        {
+            cpu.addr_mode = AddressingModes::ZPY(cpu, bus);
+            Instructions::LDX(cpu, bus);
+        }
+
+        LDX_ABX => 
+        {
+            
+            cpu.addr_mode = AddressingModes::ABY(cpu, bus);
+            Instructions::LDX(cpu, bus);
+        }
+
+        _ =>
+        {
+            cpu.addr_mode = AddressingModes::GROUP_TWO_ADDRS[addr_mask as usize](cpu, bus);
+            Instructions::GROUP_TWO_OPS[op_mask as usize](cpu, bus);
+        }
+    }
 }
 

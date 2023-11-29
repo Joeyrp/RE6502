@@ -7,7 +7,7 @@ use super::{R6502, Bus};
 pub enum ModeID
 {
     IMP,    // Implied
-    ACM,    // Accumulator - Not using, IMP might cover this
+    ACM,    // Accumulator
     IMM,    // Immediate
     ZP0,    // Zero Page
     ZPX,    // Zero Page, X
@@ -19,6 +19,7 @@ pub enum ModeID
     IND,    // Indirect
     IZX,    // Indirect, X
     IZY,    // Indirect, Y    
+    ERR,    // Error mode - this is an invalid mode
 
 }
 
@@ -38,9 +39,11 @@ pub enum ModeID
 // GROUP TWO ADDRESS MODES
 // 000	#immediate          IMM
 // 001	zero page           ZP0
-// 010	accumulator         IMP
+// 010	accumulator         ACM
 // 011	absolute            ABS
+// 100  NONE                ERR
 // 101	zero page,X         ZPX
+// 110  NONE                ERR
 // 111	absolute,X          ABX
 
 pub struct AddressingModes;
@@ -57,16 +60,35 @@ impl AddressingModes
         AddressingModes::ABX,
         ];
 
-
+    pub const GROUP_TWO_ADDRS: [fn(&mut R6502, &mut dyn Bus) -> ModeID; 8] = [
+        AddressingModes::IMM,
+        AddressingModes::ZP0,
+        AddressingModes::ACM,
+        AddressingModes::ABS,
+        AddressingModes::ERR,
+        AddressingModes::ZPX,
+        AddressingModes::ERR,
+        AddressingModes::ABX,
+        ];
 }
 
 impl AddressingModes
 {
-    // This is also the accumulator mode
+
+    pub fn ERR(cpu: &mut R6502, bus: &mut dyn Bus) -> ModeID
+    {
+        ModeID::ERR
+    }
+
     pub fn IMP(cpu: &mut R6502, bus: &mut dyn Bus) -> ModeID
     {
-        cpu.working_data = cpu.a as u16;
         ModeID::IMP
+    }
+
+    pub fn ACM(cpu: &mut R6502, bus: &mut dyn Bus) -> ModeID
+    {
+        cpu.working_data = cpu.a as u16;
+        ModeID::ACM
     }
 
     pub fn IMM(cpu: &mut R6502, bus: &mut dyn Bus) -> ModeID
