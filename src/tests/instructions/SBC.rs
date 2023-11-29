@@ -2,14 +2,11 @@
 #![allow(dead_code, non_snake_case)]
 
 use crate::tests::test_bus::RAMBus;
-use crate::r6502::{R6502, Bus, Registers};
+use crate::r6502::{R6502, Bus, Registers, Flags};
 
-//////////////////////////////////////////////////////////////////////////////
-///     IMM     IMM     IMM     IMM     IMM     IMM     IMM     IMM     IMM
-//////////////////////////////////////////////////////////////////////////////
 
 #[test]
-fn IMM() 
+fn basic() 
 {
     let mut cpu = R6502::new();
     let mut bus = RAMBus::new();
@@ -28,23 +25,21 @@ fn IMM()
      // Restart cpu
     cpu.reset(&mut bus);
 
-    // manually setup the cpu registers
+    // manually setup the cpu state
+    cpu.set_flag(Flags::C);
     cpu.debug_set_reg(Registers::A, 0x0A);
 
     // Clock the cpu to run the program (Clock essentially runs one full instruction)
     cpu.clock(&mut bus);
 
     // Is 0x04 in the A register?
-    assert_eq!(0x04, cpu.debug_get_reg(Registers::A));
+    assert_eq!(0x04, cpu.debug_get_reg(Registers::A), "wrong answer");
+    assert_eq!(1, cpu.check_flag(Flags::C), "Carry bit should be set");
+    assert_eq!(0, cpu.check_flag(Flags::V), "Overflow bit should not be set");
 }
 
-
-//////////////////////////////////////////////////////////////////////////////
-///     ZP0     ZP0     ZP0     ZP0     ZP0     ZP0     ZP0     ZP0     ZP0
-//////////////////////////////////////////////////////////////////////////////
-
 #[test]
-fn ZP0() 
+fn with_carry()
 {
     let mut cpu = R6502::new();
     let mut bus = RAMBus::new();
@@ -56,33 +51,28 @@ fn ZP0()
     bus.write(0xFFFC, (addr & 0x00FF) as u8);  // low byte
     bus.write(0xFFFD, ((addr & 0xFF00) >> 8) as u8);  // high byte
 
-    // Manually put 0x06 into memory in the zero page
-    bus.write(0x000A, 0x06);
-
-    // Program to 
-    bus.write(addr, 0xE5); // SBC - Zero Page mode
-    bus.write(addr + 1, 0x0A);  // Argument
+    // Program to subtract 0x09 from 0x08
+    bus.write(addr, 0xE9); // SBC - Immediate mode
+    bus.write(addr + 1, 0x09);  // Argument
 
      // Restart cpu
     cpu.reset(&mut bus);
-    
-    // manually setup the cpu registers
-    cpu.debug_set_reg(Registers::A, 0x0A);
+
+    // manually setup the cpu state
+    cpu.set_flag(Flags::C);
+    cpu.debug_set_reg(Registers::A, 0x08);
 
     // Clock the cpu to run the program (Clock essentially runs one full instruction)
     cpu.clock(&mut bus);
 
-    // Is 0x04 in the A register?
-    assert_eq!(0x04, cpu.debug_get_reg(Registers::A));
+    // Is -1 in the A register?
+    assert_eq!(0xFF as u16, cpu.debug_get_reg(Registers::A), "Wrong answer");
+    assert_eq!(0, cpu.check_flag(Flags::C), "Carry bit should not be set");
+    assert_eq!(0, cpu.check_flag(Flags::V), "Overflow bit should not be set");
 }
 
-
-//////////////////////////////////////////////////////////////////////////////
-///     ZPX     ZPX     ZPX     ZPX     ZPX     ZPX     ZPX     ZPX     ZPX
-//////////////////////////////////////////////////////////////////////////////
-
 #[test]
-fn ZPX() 
+fn with_overflow()
 {
     let mut cpu = R6502::new();
     let mut bus = RAMBus::new();
@@ -94,182 +84,22 @@ fn ZPX()
     bus.write(0xFFFC, (addr & 0x00FF) as u8);  // low byte
     bus.write(0xFFFD, ((addr & 0xFF00) >> 8) as u8);  // high byte
 
-    // Manually put 0x06 into memory in the zero page
-    bus.write(0x000A, 0x06);
-
-    // Program to 
-    bus.write(addr, 0xF5); //  - Zero Page, X mode
-    bus.write(addr + 1, 0x04);  // Argument
+    // Program to subtract 0x7E from 0xFB (-5 - 126)
+    bus.write(addr, 0xE9); // SBC - Immediate mode
+    bus.write(addr + 1, 0x7E);  // Argument
 
      // Restart cpu
     cpu.reset(&mut bus);
 
-    // manually setup the cpu registers
-    cpu.debug_set_reg(Registers::X, 0x06);
-    cpu.debug_set_reg(Registers::A, 0x0A);
+    // manually setup the cpu state
+    cpu.set_flag(Flags::C);
+    cpu.debug_set_reg(Registers::A, 0xFB);
 
     // Clock the cpu to run the program (Clock essentially runs one full instruction)
     cpu.clock(&mut bus);
 
-    // Is 0x04 in the A register?
-    assert_eq!(0x04, cpu.debug_get_reg(Registers::A));
-}
 
-
-//////////////////////////////////////////////////////////////////////////////
-///     ABS     ABS     ABS     ABS     ABS     ABS     ABS     ABS     ABS
-//////////////////////////////////////////////////////////////////////////////
-
-#[test]
-fn ABS() 
-{
-    let mut cpu = R6502::new();
-    let mut bus = RAMBus::new();
-
-    // program address
-    let addr = 0x0020 as u16;
-
-    // Set the program counter address
-    bus.write(0xFFFC, (addr & 0x00FF) as u8);  // low byte
-    bus.write(0xFFFD, ((addr & 0xFF00) >> 8) as u8);  // high byte
-
-    // Manually put 0x06 into memory in the zero page
-    bus.write(0x010A, 0x06);
-
-    // Program to 
-    bus.write(addr, 0xED); // SBC - Absolute mode
-    bus.write(addr + 1, 0x0A);  // Argument lo word
-    bus.write(addr + 2, 0x01);  // Argument hi word
-
-     // Restart cpu
-    cpu.reset(&mut bus);
-
-    cpu.debug_set_reg(Registers::A, 0x0A);
-
-    // Clock the cpu to run the program (Clock essentially runs one full instruction)
-    cpu.clock(&mut bus);
-
-    // Is 0x04 in the A register?
-    assert_eq!(0x04, cpu.debug_get_reg(Registers::A));
-}
-
-
-//////////////////////////////////////////////////////////////////////////////
-///     ABX     ABX     ABX     ABX     ABX     ABX     ABX     ABX     ABX
-//////////////////////////////////////////////////////////////////////////////
-
-#[test]
-fn ABX() 
-{
-    let mut cpu = R6502::new();
-    let mut bus = RAMBus::new();
-
-    // program address
-    let addr = 0x0020 as u16;
-
-    // Set the program counter address
-    bus.write(0xFFFC, (addr & 0x00FF) as u8);  // low byte
-    bus.write(0xFFFD, ((addr & 0xFF00) >> 8) as u8);  // high byte
-
-    // Manually put 0x06 into memory in the zero page
-    bus.write(0x010B, 0x06);
-
-    // Program to 
-    bus.write(addr, 0xFD); // SBC - Absolute, X mode
-    bus.write(addr + 1, 0x0A);  // Argument lo word
-    bus.write(addr + 2, 0x01);  // Argument hi word
-
-     // Restart cpu
-    cpu.reset(&mut bus);
-    
-    // manually setup the cpu registers
-    cpu.debug_set_reg(Registers::X, 0x01);
-    cpu.debug_set_reg(Registers::A, 0x0A);
-
-    // Clock the cpu to run the program (Clock essentially runs one full instruction)
-    cpu.clock(&mut bus);
-
-    // Is 0x04 in the A register?
-    assert_eq!(0x04, cpu.debug_get_reg(Registers::A));
-}
-
-//////////////////////////////////////////////////////////////////////////////
-///     ABY     ABY     ABY     ABY     ABY     ABY     ABY     ABY     ABY
-//////////////////////////////////////////////////////////////////////////////
-
-#[test]
-fn ABY() 
-{
-    let mut cpu = R6502::new();
-    let mut bus = RAMBus::new();
-
-    // program address
-    let addr = 0x0020 as u16;
-
-    // Set the program counter address
-    bus.write(0xFFFC, (addr & 0x00FF) as u8);  // low byte
-    bus.write(0xFFFD, ((addr & 0xFF00) >> 8) as u8);  // high byte
-
-    // Manually put 0x08 into memory in the zero page
-    bus.write(0x010B, 0x06);
-
-    // Program to 
-    bus.write(addr, 0xF9); //  - Absolute, Y mode
-    bus.write(addr + 1, 0x0A);  // Argument lo word
-    bus.write(addr + 2, 0x01);  // Argument hi word
-
-     // Restart cpu
-    cpu.reset(&mut bus);
-    
-    // manually setup the cpu registers
-    cpu.debug_set_reg(Registers::Y, 0x01);
-    cpu.debug_set_reg(Registers::A, 0x0A);
-
-    // Clock the cpu to run the program (Clock essentially runs one full instruction)
-    cpu.clock(&mut bus);
-
-    // Is 0x04 in the A register?
-    assert_eq!(0x04, cpu.debug_get_reg(Registers::A));
-}
-
-//////////////////////////////////////////////////////////////////////////////
-///     IZX     IZX     IZX     IZX     IZX     IZX     IZX     IZX     IZX
-//////////////////////////////////////////////////////////////////////////////
-
-#[test]
-fn IZX() 
-{
-    let mut cpu = R6502::new();
-    let mut bus = RAMBus::new();
-
-    // program address
-    let addr = 0x0020 as u16;
-
-    // Set the program counter address
-    bus.write(0xFFFC, (addr & 0x00FF) as u8);  // low byte
-    bus.write(0xFFFD, ((addr & 0xFF00) >> 8) as u8);  // high byte
-
-    // Manually put 0x08 into memory in the zero page
-    bus.write(0x010B, 0x06);
-
-    // Manually put 0x010B into the Zero page
-    bus.write(0x000B, 0x0B);
-    bus.write(0x000C, 0x01);
-
-    // Program to 
-    bus.write(addr, 0xE1); //  - Indirect, X mode
-    bus.write(addr + 1, 0x0A);  // Argument - Pointer into the Zero Page
-
-     // Restart cpu
-    cpu.reset(&mut bus);
-    
-    // manually setup the cpu registers
-    cpu.debug_set_reg(Registers::X, 0x01); // Zero Page Pointer offset
-    cpu.debug_set_reg(Registers::A, 0x0A);
-
-    // Clock the cpu to run the program (Clock essentially runs one full instruction)
-    cpu.clock(&mut bus);
-
-    // Is 0x04 in the A register?
-    assert_eq!(0x04, cpu.debug_get_reg(Registers::A));
+    assert_eq!(0x7D, cpu.debug_get_reg(Registers::A), "Wrong answer");
+    assert_eq!(1, cpu.check_flag(Flags::C), "Carry bit should be set");
+    assert_eq!(1, cpu.check_flag(Flags::V), "Overflow bit should be set");
 }

@@ -5,6 +5,18 @@ use crate::tests::test_bus::RAMBus;
 use crate::r6502::{R6502, Bus, Registers};
 
 #[test]
+fn IMP()
+{
+
+}
+
+#[test]
+fn ACM()
+{
+
+}
+
+#[test]
 fn IMM() 
 {
     let mut cpu = R6502::new();
@@ -93,6 +105,19 @@ fn ZPX()
     // Is 0x08 in the A register?
     assert_eq!(0x08, cpu.debug_get_reg(Registers::A));
 }
+
+#[test]
+fn ZPY()
+{
+
+}
+
+#[test]
+fn REL()
+{
+
+}
+
 
 #[test]
 fn ABS() 
@@ -191,6 +216,12 @@ fn ABY()
 
     // Is 0x08 in the A register?
     assert_eq!(0x08, cpu.debug_get_reg(Registers::A));
+}
+
+#[test]
+fn IND()
+{
+    
 }
 
 #[test]

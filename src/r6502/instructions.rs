@@ -173,19 +173,23 @@ impl Instructions
     // Using a technique written javidx9
     // The code in this function falls under the License (OLC-3) SEE LICENSE FILE
     // https://github.com/OneLoneCoder/olcNES/blob/master/Part%232%20-%20CPU/olc6502.cpp#L714
+    //
+    // More info about the carry bit:
+    // http://forum.6502.org/viewtopic.php?t=18
     pub fn SBC(cpu: &mut R6502, bus: &mut dyn Bus)
     {
-        // Seem to need the + 1 here for javidx9's algorithm to work
-        let value = (cpu.working_data ^ 0x00FF) + 1;
+        let value = cpu.working_data ^ 0x00FF;
         let carry = cpu.check_flag(Flags::C) as u16;
 
         let temp: u16 = cpu.a as u16 + value + carry;
 
+        cpu.clear_flag(Flags::C);
         if temp > 255
         {
             cpu.set_flag(Flags::C);
         }
         
+        cpu.clear_flag(Flags::Z);
         if temp == 0
         {
             cpu.set_flag(Flags::Z);
