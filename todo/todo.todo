@@ -41,9 +41,9 @@ Instructions:
 
     GROUP TWO:
         ✔ 000	ASL @done(23-11-30 17:31)
-        ☐ 001	ROL
-        ☐ 010	LSR
-        ☐ 011	ROR
+        ✔ 001	ROL @done(23-11-30 17:49)
+        ✔ 010	LSR @done(23-11-30 18:12)
+        ✔ 011	ROR @done(23-11-30 18:12)
         ☐ 100	STX
         ☐ 101	LDX
         ☐ 110	DEC

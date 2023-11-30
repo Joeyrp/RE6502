@@ -257,17 +257,106 @@ impl Instructions
 
     pub fn ROL(cpu: &mut R6502, bus: &mut dyn Bus)
     {
+        let old_bit_7 = (cpu.working_data & 0x80) > 0;
+        let carry = cpu.check_flag(Flags::C) as u16;
+        let result = (cpu.working_data << 1) ^ carry;
 
+        cpu.clear_flag(Flags::C);
+        if old_bit_7
+        {
+            cpu.set_flag(Flags::C);
+        }
+
+        cpu.clear_flag(Flags::N);
+        if result & 0x80 > 0
+        {
+            cpu.set_flag(Flags::N);
+        }
+
+        cpu.clear_flag(Flags::Z);
+        if result == 0
+        {
+            cpu.set_flag(Flags::Z);
+        }
+
+        if cpu.addr_mode == ModeID::ACM
+        {
+            cpu.a = result as u8;
+        }
+        else
+        {
+            bus.write(cpu.working_addr, result as u8);
+        }
+        
     }
 
     pub fn LSR(cpu: &mut R6502, bus: &mut dyn Bus)
     {
+        let old_bit_0 = (cpu.working_data & 0x01) > 0;
+        let carry = cpu.check_flag(Flags::C) as u16;
+        let result = cpu.working_data >> 1;
 
+        cpu.clear_flag(Flags::C);
+        if old_bit_0
+        {
+            cpu.set_flag(Flags::C);
+        }
+
+        cpu.clear_flag(Flags::N);
+        if result & 0x80 > 0
+        {
+            cpu.set_flag(Flags::N);
+        }
+
+        cpu.clear_flag(Flags::Z);
+        if result == 0
+        {
+            cpu.set_flag(Flags::Z);
+        }
+
+        if cpu.addr_mode == ModeID::ACM
+        {
+            cpu.a = result as u8;
+        }
+        else
+        {
+            bus.write(cpu.working_addr, result as u8);
+        }
     }
 
     pub fn ROR(cpu: &mut R6502, bus: &mut dyn Bus)
     {
+        let old_bit_0 = (cpu.working_data & 0x01) > 0;
+        let carry = cpu.check_flag(Flags::C) as u16;
+        let temp = carry << 7;
+        let result = (cpu.working_data >> 1) ^ (carry << 7);
 
+        cpu.clear_flag(Flags::C);
+        if old_bit_0
+        {
+            cpu.set_flag(Flags::C);
+        }
+
+        cpu.clear_flag(Flags::N);
+        if result & 0x80 > 0
+        {
+            cpu.set_flag(Flags::N);
+        }
+
+        cpu.clear_flag(Flags::Z);
+        if result == 0
+        {
+            cpu.set_flag(Flags::Z);
+        }
+
+        if cpu.addr_mode == ModeID::ACM
+        {
+            cpu.a = result as u8;
+        }
+        else
+        {
+            bus.write(cpu.working_addr, result as u8);
+        }
     }
 
     pub fn STX(cpu: &mut R6502, bus: &mut dyn Bus)
