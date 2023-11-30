@@ -40,7 +40,7 @@ Instructions:
         ✔ 111	SBC @done(23-11-09 13:24)
 
     GROUP TWO:
-        ☐ 000	ASL
+        ✔ 000	ASL @done(23-11-30 17:31)
         ☐ 001	ROL
         ☐ 010	LSR
         ☐ 011	ROR
