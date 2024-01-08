@@ -44,10 +44,10 @@ Instructions:
         ✔ 001	ROL @done(23-11-30 17:49)
         ✔ 010	LSR @done(23-11-30 18:12)
         ✔ 011	ROR @done(23-11-30 18:12)
-        ☐ 100	STX
-        ☐ 101	LDX
-        ☐ 110	DEC
-        ☐ 111	INC
+        ✔ 100	STX @done(24-01-08 13:46)
+        ✔ 101	LDX @done(24-01-08 14:21)
+        ✔ 110	DEC @done(24-01-08 15:59)
+        ✔ 111	INC @done(24-01-08 16:01)
 
     GROUP THREE:
         ☐ 001	BIT

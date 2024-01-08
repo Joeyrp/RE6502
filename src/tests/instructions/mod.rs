@@ -338,3 +338,123 @@ fn ROR()
     assert_eq!(1, cpu.check_flag(Flags::C), "Carry flag should be set");
     assert_eq!(1, cpu.check_flag(Flags::N), "Negative flag should be set");
 }
+
+#[test]
+fn STX()
+{
+    let mut cpu = R6502::new();
+    let mut bus = RAMBus::new();
+
+    // program address
+    let addr = 0x0020 as u16;
+
+    // Set the program counter address
+    bus.write(0xFFFC, (addr & 0x00FF) as u8);  // low byte
+    bus.write(0xFFFD, ((addr & 0xFF00) >> 8) as u8);  // high byte
+
+
+    // STX $0A
+    bus.write(addr, 0x86); // STX - Zero Page mode
+    bus.write(addr + 1, 0x0A);  // Argument
+
+    // Restart cpu
+    cpu.reset(&mut bus);
+
+    // manually setup the cpu registers
+    cpu.debug_set_reg(Registers::X, 0x0F);
+
+    // Clock the cpu to run the program (Clock essentially runs one full instruction)
+    cpu.clock(&mut bus);
+
+    // Is 0x0F at memory address 0x0A?
+    assert_eq!(0x0F, bus.read(0x0A));
+
+}
+
+#[test]
+fn LDX() 
+{
+    let mut cpu = R6502::new();
+    let mut bus = RAMBus::new();
+
+    // program address
+    let addr = 0x0020 as u16;
+
+    // Set the program counter address
+    bus.write(0xFFFC, (addr & 0x00FF) as u8);  // low byte
+    bus.write(0xFFFD, ((addr & 0xFF00) >> 8) as u8);  // high byte
+
+    // Program to load 0x08 into the accumulator
+    bus.write(addr, 0xA2); // LDX - Immediate mode
+    bus.write(addr + 1, 0x08);  // Argument
+
+     // Restart cpu
+    cpu.reset(&mut bus);
+
+    // Clock the cpu to run the program (Clock essentially runs one full instruction)
+    cpu.clock(&mut bus);
+
+    // Is 0x08 in the X register?
+    assert_eq!(0x08, cpu.debug_get_reg(Registers::X));
+}
+
+#[test]
+fn DEC()
+{
+    let mut cpu = R6502::new();
+    let mut bus = RAMBus::new();
+
+    // program address
+    let addr = 0x0020 as u16;
+
+    // Set the program counter address
+    bus.write(0xFFFC, (addr & 0x00FF) as u8);  // low byte
+    bus.write(0xFFFD, ((addr & 0xFF00) >> 8) as u8);  // high byte
+
+    // put value to decrement into memory
+
+    bus.write(0x08, 0x10);
+
+    // Program to load 0x08 into the accumulator
+    bus.write(addr, 0xC6); // DEC - Zero Page
+    bus.write(addr + 1, 0x08);  // Argument
+
+     // Restart cpu
+    cpu.reset(&mut bus);
+
+    // Clock the cpu to run the program (Clock essentially runs one full instruction)
+    cpu.clock(&mut bus);
+
+    // Is 0x0F in memory at 0x08?
+    assert_eq!(0x0F, bus.read(0x08));
+}
+
+#[test]
+fn INC()
+{
+    let mut cpu = R6502::new();
+    let mut bus = RAMBus::new();
+
+    // program address
+    let addr = 0x0020 as u16;
+
+    // Set the program counter address
+    bus.write(0xFFFC, (addr & 0x00FF) as u8);  // low byte
+    bus.write(0xFFFD, ((addr & 0xFF00) >> 8) as u8);  // high byte
+
+    // Put value to decrement into memory
+    bus.write(0x08, 0x10);
+
+    // Program to load 0x08 into the accumulator
+    bus.write(addr, 0xE6); // INC - Zero Page
+    bus.write(addr + 1, 0x08);  // Argument
+
+     // Restart cpu
+    cpu.reset(&mut bus);
+
+    // Clock the cpu to run the program (Clock essentially runs one full instruction)
+    cpu.clock(&mut bus);
+
+    // Is 0x11 in memory at 0x08?
+    assert_eq!(0x11, bus.read(0x08));
+}

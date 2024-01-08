@@ -361,22 +361,60 @@ impl Instructions
 
     pub fn STX(cpu: &mut R6502, bus: &mut dyn Bus)
     {
-
+        bus.write(cpu.working_addr, cpu.x);
     }
 
     pub fn LDX(cpu: &mut R6502, bus: &mut dyn Bus)
     {
+        let data = cpu.working_data as u8;
+        cpu.x = data;
 
+        if cpu.x == 0
+        {
+            cpu.set_flag(Flags::Z);
+        }
+
+        if cpu.x & 0x80 != 0
+        {
+            cpu.set_flag(Flags::N);
+        }
     }
 
     pub fn DEC(cpu: &mut R6502, bus: &mut dyn Bus)
     {
+        let dec_val = bus.read(cpu.working_addr) - 1;
+        bus.write(cpu.working_addr, dec_val);
+
+        cpu.clear_flag(Flags::Z);
+        if dec_val == 0
+        {
+            cpu.set_flag(Flags::Z);
+        }
+
+        cpu.clear_flag(Flags::N);
+        if dec_val & 0x80 > 0
+        {
+            cpu.set_flag(Flags::N);
+        }
 
     }
 
     pub fn INC(cpu: &mut R6502, bus: &mut dyn Bus)
     {
+        let dec_val = bus.read(cpu.working_addr) + 1;
+        bus.write(cpu.working_addr, dec_val);
 
+        cpu.clear_flag(Flags::Z);
+        if dec_val == 0
+        {
+            cpu.set_flag(Flags::Z);
+        }
+
+        cpu.clear_flag(Flags::N);
+        if dec_val & 0x80 > 0
+        {
+            cpu.set_flag(Flags::N);
+        }
     }
 
     ///////////////////////////////////////////////////////////
