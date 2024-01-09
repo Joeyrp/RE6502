@@ -180,7 +180,8 @@ fn execute(instruction: u8, cpu: &mut R6502, bus: &mut dyn Bus)
     match group_code
     {
         0x01 => exe_group_one(instruction, cpu, bus),
-        0x02  => exe_group_two(instruction, cpu, bus),
+        0x02 => exe_group_two(instruction, cpu, bus),
+        0x00 => exe_group_three(instruction, cpu, bus),
 
         // TODO: Conditionals and specially formatted instructions
 
@@ -237,3 +238,21 @@ fn exe_group_two(instruction: u8, cpu: &mut R6502, bus: &mut dyn Bus)
     }
 }
 
+fn exe_group_three(instruction: u8, cpu: &mut R6502, bus: &mut dyn Bus)
+{
+    let addr_mask = (instruction & 0x1C) >> 2;
+    let op_mask = (instruction & 0xE0) >> 5;
+
+    // SPECIAL CASE FOR JMP (abs)
+    const JMP_IND: u8 = 0x6C;
+    if instruction == JMP_IND
+    {
+        cpu.addr_mode = AddressingModes::IND(cpu, bus);
+    }
+    else
+    {
+        cpu.addr_mode = AddressingModes::GROUP_THREE_ADDRS[addr_mask as usize](cpu, bus);
+    }
+
+    Instructions::GROUP_THREE_OPS[op_mask as usize](cpu, bus);
+}

@@ -50,9 +50,9 @@ Instructions:
         ✔ 111	INC @done(24-01-08 16:01)
 
     GROUP THREE:
-        ☐ 001	BIT
-        ☐ 010	JMP
-        ☐ 011	JMP (abs)
+        ✔ 001	BIT @done(24-01-09 16:16)
+        ✔ 010	JMP @done(24-01-09 16:16)
+        ✔ 011	JMP (abs) @done(24-01-09 16:16)
         ☐ 100	STY
         ☐ 101	LDY
         ☐ 110	CPY

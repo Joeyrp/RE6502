@@ -46,6 +46,13 @@ pub enum ModeID
 // 110  NONE                ERR
 // 111	absolute,X          ABX
 
+// GROUP THREE ADDRES MODES
+// 000	#immediate          IMM
+// 001	zero page           ZP0
+// 011	absolute            ABS
+// 101	zero page,X         ZPX
+// 111	absolute,X          ABX
+
 pub struct AddressingModes;
 impl AddressingModes
 {
@@ -70,6 +77,17 @@ impl AddressingModes
         AddressingModes::ERR,
         AddressingModes::ABX,
         ];
+
+    pub const GROUP_THREE_ADDRS: [fn(&mut R6502, &mut dyn Bus) -> ModeID; 8] = [
+        AddressingModes::IMM,
+        AddressingModes::ZP0,
+        AddressingModes::ERR,
+        AddressingModes::ABS,
+        AddressingModes::ERR,
+        AddressingModes::ZPX,
+        AddressingModes::ERR,
+        AddressingModes::ABX,
+        ];
 }
 
 impl AddressingModes
@@ -77,6 +95,7 @@ impl AddressingModes
 
     pub fn ERR(cpu: &mut R6502, bus: &mut dyn Bus) -> ModeID
     {
+        // TODO: Better error handling
         ModeID::ERR
     }
 
@@ -184,9 +203,41 @@ impl AddressingModes
         ModeID::ABY
     }
 
+    // https://www.nesdev.org/obelisk-6502-guide/addressing.html#IND
+    // JMP is the only 6502 instruction to support indirection. 
+    // The instruction contains a 16 bit address which identifies the location of 
+    // the least significant byte of another 16 bit memory address which is the real 
+    // target of the instruction.
+
+    // For example if location $0120 contains $FC and location $0121 contains $BA then 
+    // the instruction JMP ($0120) will cause the next instruction execution to occur at 
+    // $BAFC (e.g. the contents of $0120 and $0121).
+
     pub fn IND(cpu: &mut R6502, bus: &mut dyn Bus) -> ModeID
     {
+        // https://www.nesdev.org/obelisk-6502-guide/reference.html#JMP
+        // NOTE: An original 6502 does not correctly fetch the target address 
+        // if the indirect vector falls on a page boundary (e.g. $xxFF where xx is any value from $00 to $FF). 
+        // In this case it fetches the LSB from $xxFF as expected but takes the MSB from $xx00.
+
+        let ptr_lo = bus.read(cpu.pc) as u16;
+        cpu.pc += 1;
+        let ptr_hi = bus.read(cpu.pc) as u16;
+        cpu.pc += 1;
+
+        let ptr = (ptr_hi << 8) | ptr_lo;
         
+        let addr_lo = bus.read(ptr) as u16;
+        let mut addr_hi = bus.read(ptr + 1) as u16;
+
+        // Emulate the bug
+        if ptr_lo == 0xFF
+        {
+            addr_hi = bus.read(ptr & 0xFF00) as u16;
+        }
+
+        cpu.working_addr = (addr_hi << 8) | addr_lo;
+
         ModeID::IND
     }
 

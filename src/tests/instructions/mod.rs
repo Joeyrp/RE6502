@@ -458,3 +458,80 @@ fn INC()
     // Is 0x11 in memory at 0x08?
     assert_eq!(0x11, bus.read(0x08));
 }
+
+
+/////////////////////////////////////////////////////////////////////
+//				GROUP THREE
+/////////////////////////////////////////////////////////////////////
+#[test]
+fn BIT()
+{
+    // TODO: Could add more tests for this instruction
+    //      Maybe move into it's own file and test
+    //      every result pattern.
+
+    let mut cpu = R6502::new();
+    let mut bus = RAMBus::new();
+
+    // program address
+    let addr = 0x0020 as u16;
+
+    // Set the program counter address
+    bus.write(0xFFFC, (addr & 0x00FF) as u8);  // low byte
+    bus.write(0xFFFD, ((addr & 0xFF00) >> 8) as u8);  // high byte
+
+    // Put value to test into memory
+    bus.write(0x08, 0x10);
+
+    // BIT test program
+    bus.write(addr, 0x24); // BIT - Zero Page
+    bus.write(addr + 1, 0x08);  // Argument
+
+     // Restart cpu
+    cpu.reset(&mut bus);
+
+    // Preload A register with bit mask
+    cpu.debug_set_reg(Registers::A, 0x05);
+
+    // Clock the cpu to run the program (Clock essentially runs one full instruction)
+    cpu.clock(&mut bus);
+
+    // Is the Z flag set?
+    assert_eq!(1, cpu.check_flag(Flags::Z));
+
+    // Is the N flag and V flag not set?
+    assert_eq!(0, cpu.check_flag(Flags::V));
+    assert_eq!(0, cpu.check_flag(Flags::N));
+}
+
+#[test]
+fn JMP()
+{
+    let mut cpu = R6502::new();
+    let mut bus = RAMBus::new();
+
+    // program address
+    let addr = 0x0020 as u16;
+
+    // Set the program counter address
+    bus.write(0xFFFC, (addr & 0x00FF) as u8);  // low byte
+    bus.write(0xFFFD, ((addr & 0xFF00) >> 8) as u8);  // high byte
+
+    // Put jump location into memory
+    bus.write(0x08, 0x34);
+    bus.write(0x09, 0x12);
+
+    // JMP test program
+    bus.write(addr, 0x6C); // JMP - IND
+    bus.write(addr + 1, 0x08);  // LO Argument
+    bus.write(addr + 2, 0x00);  // HI Argument
+
+     // Restart cpu
+    cpu.reset(&mut bus);
+
+    // Clock the cpu to run the program (Clock essentially runs one full instruction)
+    cpu.clock(&mut bus);
+
+    // Is the program counter now 0x1234?
+    assert_eq!(0x1234, cpu.debug_get_reg(Registers::PC));
+}

@@ -42,10 +42,30 @@ impl Instructions
             Instructions::DEC, // 110	
             Instructions::INC, // 111	
         ];
+
+        pub const GROUP_THREE_OPS: [fn(&mut R6502, &mut dyn Bus); 8] = [
+            Instructions::ERR,
+            Instructions::BIT,  // 001	BIT
+            Instructions::JMP,  // 010	JMP
+            Instructions::JMP,  // 011	JMP (abs)
+            Instructions::STY,  // 100	STY
+            Instructions::LDY,  // 101	LDY
+            Instructions::CPY,  // 110	CPY
+            Instructions::CPX,  // 111	CPX
+        ];
+       
+       
+        
 }
 
 impl Instructions
 {
+    pub fn ERR(_cpu: &mut R6502, _bus: &mut dyn Bus)
+    {
+        // TODO: Better error handling
+        println!("ERROR: Invalid Instruction");
+    }
+
     ///////////////////////////////////////////////////////////
     // GROUP ONE
     pub fn ORA(cpu: &mut R6502, _bus: &mut dyn Bus)
@@ -419,6 +439,65 @@ impl Instructions
 
     ///////////////////////////////////////////////////////////
     // GROUP THREE
+    pub fn BIT(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+        cpu.set_flag(Flags::Z);
+        if cpu.a & (cpu.working_data as u8) > 0
+        {
+            cpu.clear_flag(Flags::Z);
+        }
 
+        cpu.clear_flag(Flags::V);
+        if cpu.working_data & 0x0040 > 0
+        {
+            cpu.set_flag(Flags::V);
+        }
+
+        cpu.clear_flag(Flags::N);
+        if cpu.working_data & 0x0080 > 0
+        {
+            cpu.set_flag(Flags::N);
+        }
+    }
+
+    pub fn JMP(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+        cpu.pc = cpu.working_addr;
+    }
+
+    // JMP (abs)
+    // pub fn JPA(cpu: &mut R6502, bus: &mut dyn Bus)
+    // {
+    //     cpu.pc = cpu.working_addr;
+
+    // }
+
+    pub fn STY(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+
+    }
+
+    pub fn LDY(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+
+    }
+
+    pub fn CPY(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+
+    }
+
+    pub fn CPX(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+
+    }
+
+    ///////////////////////////////////////////////////////////
+    // BRANCHING
     
+
+    ///////////////////////////////////////////////////////////
+    // INTERRUPT AND SUBROUTINE
+
+
 }
