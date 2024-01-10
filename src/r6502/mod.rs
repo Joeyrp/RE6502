@@ -175,15 +175,32 @@ fn execute(instruction: u8, cpu: &mut R6502, bus: &mut dyn Bus)
 {
     // Instruction decoding:
     // https://llx.com/Neil/a2/opcodes.html
+
+    // Check if this is a branch instruction
+    // The conditional branch instructions all have the form xxy10000
+    // 0x1F == 11111
+    // 0x10 == 10000
+    const BRANCH_OP: u8 = 0x10;
+    const BRANCH_MASK: u8 = 0x1F;
+    if instruction & BRANCH_MASK == BRANCH_OP
+    {
+        exe_branch(instruction, cpu, bus);
+        return;
+    }
+
+    // Single byte instructions
     
+    // Instructions with arguments
+    const GROUP_ONE_OP:   u8 = 0x01;
+    const GROUP_TWO_OP:   u8 = 0x02;
+    const GROUP_THREE_OP: u8 = 0x00;
+
     let group_code = instruction & 0x03; // group one has a bit pattern of xxxxxx01
     match group_code
     {
-        0x01 => exe_group_one(instruction, cpu, bus),
-        0x02 => exe_group_two(instruction, cpu, bus),
-        0x00 => exe_group_three(instruction, cpu, bus),
-
-        // TODO: Conditionals and specially formatted instructions
+        GROUP_ONE_OP => exe_group_one(instruction, cpu, bus),
+        GROUP_TWO_OP => exe_group_two(instruction, cpu, bus),
+        GROUP_THREE_OP => exe_group_three(instruction, cpu, bus),
 
         _ => panic!("UNKNOWN INSTRUCTION ADDRESS MODE: {}", group_code)
     }
@@ -255,4 +272,15 @@ fn exe_group_three(instruction: u8, cpu: &mut R6502, bus: &mut dyn Bus)
     }
 
     Instructions::GROUP_THREE_OPS[op_mask as usize](cpu, bus);
+}
+
+fn exe_branch(instruction: u8, cpu: &mut R6502, bus: &mut dyn Bus)
+{
+    let pc_offset = AddressingModes::REL(cpu, bus);
+
+    // TODO: Decode instruction
+    // Need to map: 10	30	50	70	90	B0 	D0	F0 - op code
+    // to:          0   1   2   3   4   5   6   7  - method index
+
+    // ChatGPT says: Index = (Value−16​) / 32
 }

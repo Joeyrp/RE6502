@@ -53,6 +53,17 @@ impl Instructions
             Instructions::CPY,  // 110	CPY
             Instructions::CPX,  // 111	CPX
         ];
+
+        pub const GROUP_BRANCHING_OPS: [fn(&mut R6502, &mut dyn Bus); 8] = [
+            Instructions::BPL,	
+            Instructions::BMI,	
+            Instructions::BVC,	
+            Instructions::BVS,	
+            Instructions::BCC,	
+            Instructions::BCS,
+            Instructions::BNE,
+            Instructions::BEQ,
+        ];
        
        
         
@@ -474,26 +485,110 @@ impl Instructions
 
     pub fn STY(cpu: &mut R6502, bus: &mut dyn Bus)
     {
-
+        bus.write(cpu.working_addr, cpu.y);
     }
 
     pub fn LDY(cpu: &mut R6502, bus: &mut dyn Bus)
     {
+        let data = cpu.working_data as u8;
+        cpu.y = data;
 
+        if cpu.y == 0
+        {
+            cpu.set_flag(Flags::Z);
+        }
+
+        if cpu.y & 0x80 != 0
+        {
+            cpu.set_flag(Flags::N);
+        }
     }
 
     pub fn CPY(cpu: &mut R6502, bus: &mut dyn Bus)
     {
+        cpu.clear_flag(Flags::C);
+        if cpu.y as u16 >= cpu.working_data
+        {
+            cpu.set_flag(Flags::C);
+        }
 
+        cpu.clear_flag(Flags::Z);
+        if cpu.y == cpu.working_data as u8
+        {
+            cpu.set_flag(Flags::Z);
+        }
+
+        cpu.clear_flag(Flags::N);
+        if (cpu.y as u16 - cpu.working_data) & 0x80 > 0
+        {
+            cpu.set_flag(Flags::N);
+        }
     }
 
     pub fn CPX(cpu: &mut R6502, bus: &mut dyn Bus)
     {
+        cpu.clear_flag(Flags::C);
+        if cpu.x as u16 >= cpu.working_data
+        {
+            cpu.set_flag(Flags::C);
+        }
+
+        cpu.clear_flag(Flags::Z);
+        if cpu.x == cpu.working_data as u8
+        {
+            cpu.set_flag(Flags::Z);
+        }
+
+        cpu.clear_flag(Flags::N);
+        if (cpu.x as u16 - cpu.working_data) & 0x80 > 0
+        {
+            cpu.set_flag(Flags::N);
+        }
 
     }
 
     ///////////////////////////////////////////////////////////
     // BRANCHING
+    fn BPL(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+
+    }	
+
+    fn BMI(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+
+    }	
+
+    fn BVC(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+
+    }	
+
+    fn BVS(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+
+    }	
+
+    fn BCC(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+
+    }	
+
+    fn BCS(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+
+    } 
+
+    fn BNE(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+
+    }	
+
+    fn BEQ(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+
+    }
+
     
 
     ///////////////////////////////////////////////////////////

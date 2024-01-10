@@ -535,3 +535,126 @@ fn JMP()
     // Is the program counter now 0x1234?
     assert_eq!(0x1234, cpu.debug_get_reg(Registers::PC));
 }
+
+
+#[test]
+fn STY()
+{
+    let mut cpu = R6502::new();
+    let mut bus = RAMBus::new();
+
+    // program address
+    let addr = 0x0020 as u16;
+
+    // Set the program counter address
+    bus.write(0xFFFC, (addr & 0x00FF) as u8);  // low byte
+    bus.write(0xFFFD, ((addr & 0xFF00) >> 8) as u8);  // high byte
+
+
+    // STY $0A
+    bus.write(addr, 0x84); // STY - Zero Page mode
+    bus.write(addr + 1, 0x0A);  // Argument
+
+    // Restart cpu
+    cpu.reset(&mut bus);
+
+    // manually setup the cpu registers
+    cpu.debug_set_reg(Registers::Y, 0x0F);
+
+    // Clock the cpu to run the program (Clock essentially runs one full instruction)
+    cpu.clock(&mut bus);
+
+    // Is 0x0F at memory address 0x0A?
+    assert_eq!(0x0F, bus.read(0x0A));
+
+}
+
+
+#[test]
+fn LDY() 
+{
+    let mut cpu = R6502::new();
+    let mut bus = RAMBus::new();
+
+    // program address
+    let addr = 0x0020 as u16;
+
+    // Set the program counter address
+    bus.write(0xFFFC, (addr & 0x00FF) as u8);  // low byte
+    bus.write(0xFFFD, ((addr & 0xFF00) >> 8) as u8);  // high byte
+
+    // Program to load 0x08 into the Y Register
+    bus.write(addr, 0xA0); // LDY - Immediate mode
+    bus.write(addr + 1, 0x08);  // Argument
+
+     // Restart cpu
+    cpu.reset(&mut bus);
+
+    // Clock the cpu to run the program (Clock essentially runs one full instruction)
+    cpu.clock(&mut bus);
+
+    // Is 0x08 in the Y register?
+    assert_eq!(0x08, cpu.debug_get_reg(Registers::Y));
+}
+
+#[test]
+fn CPY() 
+{
+    // TODO: More tests for CPY and CPX
+    
+    let mut cpu = R6502::new();
+    let mut bus = RAMBus::new();
+
+    // program address
+    let addr = 0x0020 as u16;
+
+    // Set the program counter address
+    bus.write(0xFFFC, (addr & 0x00FF) as u8);  // low byte
+    bus.write(0xFFFD, ((addr & 0xFF00) >> 8) as u8);  // high byte
+
+    // Program to compare 0x10 and 0x10
+    bus.write(addr, 0xC0); // CPY - Immediate mode
+    bus.write(addr + 1, 0x10);  // Argument
+
+     // Restart cpu
+    cpu.reset(&mut bus);
+
+    // Preload the Y register with value 0x10
+    cpu.debug_set_reg(Registers::Y, 0x10);
+
+    // Clock the cpu to run the program (Clock essentially runs one full instruction)
+    cpu.clock(&mut bus);
+
+    // Is the Z flag set?
+    assert_eq!(1, cpu.check_flag(Flags::Z));
+}
+
+#[test]
+fn CPX() 
+{
+    let mut cpu = R6502::new();
+    let mut bus = RAMBus::new();
+
+    // program address
+    let addr = 0x0020 as u16;
+
+    // Set the program counter address
+    bus.write(0xFFFC, (addr & 0x00FF) as u8);  // low byte
+    bus.write(0xFFFD, ((addr & 0xFF00) >> 8) as u8);  // high byte
+
+    // Program to compare 0x10 and 0x10
+    bus.write(addr, 0xE0); // CPX - Immediate mode
+    bus.write(addr + 1, 0x10);  // Argument
+
+     // Restart cpu
+    cpu.reset(&mut bus);
+
+    // Preload the X register with value 0x10
+    cpu.debug_set_reg(Registers::X, 0x10);
+
+    // Clock the cpu to run the program (Clock essentially runs one full instruction)
+    cpu.clock(&mut bus);
+
+    // Is the Z flag set?
+    assert_eq!(1, cpu.check_flag(Flags::Z));
+}

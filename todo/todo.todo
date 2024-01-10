@@ -24,9 +24,9 @@ Addressing modes:
     ✔ ABS - Absolute @done(23-11-07 20:25)
     ✔ ABX - Absolute, X @done(23-11-07 20:25)
     ✔ ABY - Absolute, Y @done(23-11-07 20:25)
-    ☐ IND - Indirect
-    ☐ IZX - Indirect, X
-    ☐ IZY - Indirect, Y
+    ✔ IND - Indirect @done(24-01-10 15:26)
+    ✔ IZX - Indirect, X @done(24-01-10 15:26)
+    ✔ IZY - Indirect, Y @done(24-01-10 15:26)
 
 Instructions:
     GROUP ONE:
@@ -53,10 +53,10 @@ Instructions:
         ✔ 001	BIT @done(24-01-09 16:16)
         ✔ 010	JMP @done(24-01-09 16:16)
         ✔ 011	JMP (abs) @done(24-01-09 16:16)
-        ☐ 100	STY
-        ☐ 101	LDY
-        ☐ 110	CPY
-        ☐ 111	CPX
+        ✔ 100	STY @done(24-01-10 14:10)
+        ✔ 101	LDY @done(24-01-10 14:10)
+        ✔ 110	CPY @done(24-01-10 15:26)
+        ✔ 111	CPX @done(24-01-10 15:26)
 
     CONDITIONALS:
         ☐ 10   BPL	

@@ -152,11 +152,6 @@ impl AddressingModes
 
     pub fn REL(cpu: &mut R6502, bus: &mut dyn Bus) -> ModeID
     {
-        // NOTE: Not sure if we can use the working_data variable for this.
-        //          if any instruction using this address mode needs extra data read
-        //          then we need another variable to store this address
-        //
-        //          Use working_addr to just like the other modes
         cpu.working_data = bus.read(cpu.pc) as u16;
         cpu.pc += 1;
 
