@@ -59,14 +59,14 @@ Instructions:
         ✔ 111	CPX @done(24-01-10 15:26)
 
     CONDITIONALS:
-        ☐ 10   BPL	
-        ☐ 30   BMI	
-        ☐ 50   BVC	
-        ☐ 70   BVS	
-        ☐ 90   BCC	
-        ☐ B0   BCS 	
-        ☐ D0   BNE	
-        ☐ F0   BEQ
+        ✔ 10   BPL @done(24-01-12 16:49)
+        ✔ 30   BMI @done(24-01-12 16:49)
+        ✔ 50   BVC @done(24-01-12 16:49)
+        ✔ 70   BVS @done(24-01-12 16:49)
+        ✔ 90   BCC @done(24-01-12 16:49)
+        ✔ B0   BCS @done(24-01-12 16:49)
+        ✔ D0   BNE @done(24-01-12 16:49)
+        ✔ F0   BEQ @done(24-01-12 16:49)
 
     INTERRUPT/SUBROUTINE:
         ☐ 00   BRK

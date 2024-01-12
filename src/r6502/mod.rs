@@ -50,7 +50,7 @@ pub struct R6502
     y: u8,      // Y Register
 
     pc: u16,    // Program Counter
-    sp: u8,     // Stack Pointer
+    sp: u16,     // Stack Pointer
     status: u8, // Status Flags
 
     cycles: u32, // Track cycles
@@ -94,7 +94,7 @@ impl R6502
             Registers::Y => self.y = value as u8,
 
             Registers::PC => self.pc = value,
-            Registers::SP => self.sp  = value as u8,
+            Registers::SP => self.sp  = value,
 
             Registers::STATUS => self.status = value as u8,
         }
@@ -121,7 +121,7 @@ impl R6502
         self.a = 0;
         self.x = 0;
         self.y = 0;
-        self.sp = 0xFF;     // stack actually starts at 0x01FF but we only need the low byte since the end of the stack is at 0x0100
+        self.sp = 0x01FF; 
         self.status = 0;
         self.set_flag(Flags::U);
 
@@ -170,6 +170,19 @@ impl R6502
 }
 
 
+fn stack_push(value: u8, cpu: &mut R6502, bus: &mut dyn Bus)
+{
+    // TODO: Check for out of bounds errors
+    bus.write(cpu.sp, value);
+    cpu.sp -= 1;
+}
+
+fn stack_pop(cpu: &mut R6502, bus: &mut dyn Bus) -> u8
+{
+    cpu.sp += 1;
+    bus.read(cpu.sp)
+}
+
 
 fn execute(instruction: u8, cpu: &mut R6502, bus: &mut dyn Bus)
 {
@@ -187,6 +200,8 @@ fn execute(instruction: u8, cpu: &mut R6502, bus: &mut dyn Bus)
         exe_branch(instruction, cpu, bus);
         return;
     }
+
+    // Interrupt and Subroutine
 
     // Single byte instructions
     
@@ -278,9 +293,13 @@ fn exe_branch(instruction: u8, cpu: &mut R6502, bus: &mut dyn Bus)
 {
     let pc_offset = AddressingModes::REL(cpu, bus);
 
-    // TODO: Decode instruction
+    // Decode instruction
     // Need to map: 10	30	50	70	90	B0 	D0	F0 - op code
     // to:          0   1   2   3   4   5   6   7  - method index
 
     // ChatGPT says: Index = (Value−16​) / 32
+
+    let idx = ((instruction - 16) / 32) as usize;
+
+    Instructions::GROUP_BRANCHING_OPS[idx](cpu, bus);
 }

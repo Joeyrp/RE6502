@@ -658,3 +658,55 @@ fn CPX()
     // Is the Z flag set?
     assert_eq!(1, cpu.check_flag(Flags::Z));
 }
+
+/////////////////////////////////////////////////////////////////////
+//				BRANCHING
+/////////////////////////////////////////////////////////////////////
+
+#[test]
+fn BPL()
+{
+    
+}	
+
+#[test]
+fn BMI()
+{
+
+}	
+
+#[test]
+fn BVC()
+{
+
+}	
+
+#[test]
+fn BVS()
+{
+
+}	
+
+#[test]
+fn BCC()
+{
+
+}	
+
+#[test]
+fn BCS()
+{
+
+} 
+
+#[test]
+fn BNE()
+{
+
+}	
+
+#[test]
+fn BEQ()
+{
+
+}

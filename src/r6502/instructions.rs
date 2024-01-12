@@ -551,48 +551,72 @@ impl Instructions
     // BRANCHING
     fn BPL(cpu: &mut R6502, bus: &mut dyn Bus)
     {
-
+        if cpu.check_flag(Flags::N) == 0
+        {
+            cpu.pc += cpu.working_data;
+        }
     }	
 
     fn BMI(cpu: &mut R6502, bus: &mut dyn Bus)
     {
-
+        if cpu.check_flag(Flags::N) != 0
+        {
+            cpu.pc += cpu.working_data;
+        }
     }	
 
     fn BVC(cpu: &mut R6502, bus: &mut dyn Bus)
     {
-
+        if cpu.check_flag(Flags::V) == 0
+        {
+            cpu.pc += cpu.working_data;
+        }
     }	
 
     fn BVS(cpu: &mut R6502, bus: &mut dyn Bus)
     {
-
+        if cpu.check_flag(Flags::V) != 0
+        {
+            cpu.pc += cpu.working_data;
+        }
     }	
 
     fn BCC(cpu: &mut R6502, bus: &mut dyn Bus)
     {
-
+        if cpu.check_flag(Flags::C) == 0
+        {
+            cpu.pc += cpu.working_data;
+        }
     }	
 
     fn BCS(cpu: &mut R6502, bus: &mut dyn Bus)
     {
-
+        if cpu.check_flag(Flags::C) != 0
+        {
+            cpu.pc += cpu.working_data;
+        }
     } 
 
     fn BNE(cpu: &mut R6502, bus: &mut dyn Bus)
     {
-
+        if cpu.check_flag(Flags::Z) == 0
+        {
+            cpu.pc += cpu.working_data;
+        }
     }	
 
     fn BEQ(cpu: &mut R6502, bus: &mut dyn Bus)
     {
-
+        if cpu.check_flag(Flags::Z) != 0
+        {
+            cpu.pc += cpu.working_data;
+        }
     }
-
-    
 
     ///////////////////////////////////////////////////////////
     // INTERRUPT AND SUBROUTINE
 
+    ///////////////////////////////////////////////////////////
+    // SINGLE BYTE
 
 }
