@@ -110,7 +110,9 @@ impl R6502
             self.pc += 1;
 
             execute(opcode, self, bus);
-            //self.pc += 1;
+
+            // Addressing modes increment pc instead
+            //self.pc += 1; 
         //}
 
         self.cycles -= 1;
@@ -139,15 +141,55 @@ impl R6502
 
     pub fn irq(&mut self, bus: &mut impl Bus)
     {
+        if self.check_flag(Flags::I) != 0
+        {
+            return;
+        }
 
+        let pc_hi = ((self.pc & 0xFF00) >> 8) as u8; 
+        let pc_lo = (self.pc & 0x00FF) as u8; 
+        stack_push(pc_hi, self, bus, );
+        stack_push(pc_lo, self, bus, );
+
+        stack_push(self.status, self, bus);
+
+        self.set_flag(Flags::I);
+
+        let addr_lo = bus.read(0xFFFE) as u16;
+        let addr_hi = bus.read(0xFFFF) as u16;
+        self.pc = (addr_hi >> 8) | addr_lo;
     }
 
     pub fn nmi(&mut self, bus: &mut impl Bus)
     {
-        
+        let pc_hi = ((self.pc & 0xFF00) >> 8) as u8; 
+        let pc_lo = (self.pc & 0x00FF) as u8; 
+        stack_push(pc_hi, self, bus, );
+        stack_push(pc_lo, self, bus, );
+
+        stack_push(self.status, self, bus);
+
+        let addr_lo = bus.read(0xFFFA) as u16;
+        let addr_hi = bus.read(0xFFFB) as u16;
+        self.pc = (addr_hi >> 8) | addr_lo;
     }
 
     // helpers
+    pub fn set_zn_flags(&mut self, val: u8)
+    {
+        self.clear_flag(Flags::Z);
+        if val == 0
+        {
+            self.set_flag(Flags::Z);
+        }
+
+        self.clear_flag(Flags::N);
+        if val & 0x80 != 0
+        {
+            self.set_flag(Flags::N);
+        }
+    }
+
     pub fn set_flag(&mut self, bit: Flags)
     {
         self.status |= bit as u8;
@@ -170,14 +212,14 @@ impl R6502
 }
 
 
-fn stack_push(value: u8, cpu: &mut R6502, bus: &mut dyn Bus)
+pub(crate) fn stack_push(value: u8, cpu: &mut R6502, bus: &mut dyn Bus)
 {
     // TODO: Check for out of bounds errors
     bus.write(cpu.sp, value);
     cpu.sp -= 1;
 }
 
-fn stack_pop(cpu: &mut R6502, bus: &mut dyn Bus) -> u8
+pub(crate) fn stack_pop(cpu: &mut R6502, bus: &mut dyn Bus) -> u8
 {
     cpu.sp += 1;
     bus.read(cpu.sp)
@@ -202,8 +244,26 @@ fn execute(instruction: u8, cpu: &mut R6502, bus: &mut dyn Bus)
     }
 
     // Interrupt and Subroutine
+    const BRK: u8 = 0x00;
+    const JSR: u8 = 0x20;
+    const RTI: u8 = 0x40;
+    const RTS: u8 = 0x60;
+
+    match instruction
+    {
+        BRK => {Instructions::BRK(cpu, bus); return; }
+        JSR => {Instructions::JSR(cpu, bus); return; }
+        RTI => {Instructions::RTI(cpu, bus); return; }
+        RTS => {Instructions::RTS(cpu, bus); return; }
+
+        _ => ()
+    }
 
     // Single byte instructions
+    if exe_single_byte(instruction, cpu, bus)
+    {
+        return;
+    }
     
     // Instructions with arguments
     const GROUP_ONE_OP:   u8 = 0x01;
@@ -217,8 +277,10 @@ fn execute(instruction: u8, cpu: &mut R6502, bus: &mut dyn Bus)
         GROUP_TWO_OP => exe_group_two(instruction, cpu, bus),
         GROUP_THREE_OP => exe_group_three(instruction, cpu, bus),
 
-        _ => panic!("UNKNOWN INSTRUCTION ADDRESS MODE: {}", group_code)
+        _ => panic!("UNKNOWN INSTRUCTION: {:#02X}", instruction)
     }
+
+
 }
 
 fn exe_group_one(instruction: u8, cpu: &mut R6502, bus: &mut dyn Bus)
@@ -302,4 +364,39 @@ fn exe_branch(instruction: u8, cpu: &mut R6502, bus: &mut dyn Bus)
     let idx = ((instruction - 16) / 32) as usize;
 
     Instructions::GROUP_BRANCHING_OPS[idx](cpu, bus);
+}
+
+// Returns true if the insruction was handled
+fn exe_single_byte(instruction: u8, cpu: &mut R6502, bus: &mut dyn Bus) -> bool
+{
+    // Group of 8's
+    // PHP CLC PLP SEC PHA CLI PLA SEI DEY TYA TAY CLV INY CLD INX SED
+    //  08  18  28  38  48  58  68 	78  88 	98  A8  B8 	C8  D8  E8  F8 
+    // Index = (Value-8) / 16
+    const EIGHT_MASK: u8 = 0x0F;
+    if instruction & EIGHT_MASK == 0x08
+    {
+        let i = ((instruction - 0x08) / 0x10) as usize;
+        Instructions::GROUP_SB1_OPS[i](cpu, bus);
+        return true;
+    }
+    
+    // Group of A's
+    // TXA 	TXS  TAX  TSX  DEX 	NOP
+    // 8A 	9A 	  AA   BA 	CA 	 EA	
+    // Index = (Value-8A) /	16
+    if instruction < 0x8A
+    {
+        return false;
+    }
+
+    const A_MASK: u8 = 0x05;
+    if instruction & A_MASK == 0xA
+    {
+        let i = ((instruction - 0x8A) / 0x10) as usize;
+        Instructions::GROUP_SB2_OPS[i](cpu, bus);
+        return true;
+    }
+
+    false
 }

@@ -2,7 +2,8 @@
 
 #![allow(dead_code, non_snake_case)]
 
-use super::{R6502, Bus, Flags, addressing_modes::{AddressingModes, ModeID}};
+use super::{R6502, Bus, Flags, addressing_modes::ModeID, stack_push, stack_pop};
+//use super::{R6502, Bus, Flags, addressing_modes::{AddressingModes, ModeID}};
 
 // Instruction decoding:
 // https://llx.com/Neil/a2/opcodes.html
@@ -32,7 +33,7 @@ impl Instructions
             Instructions::SBC,
         ];
 
-        pub const GROUP_TWO_OPS: [fn(&mut R6502, &mut dyn Bus); 8] = [
+    pub const GROUP_TWO_OPS: [fn(&mut R6502, &mut dyn Bus); 8] = [
             Instructions::ASL, // 000	
             Instructions::ROL, // 001	
             Instructions::LSR, // 010	
@@ -43,7 +44,7 @@ impl Instructions
             Instructions::INC, // 111	
         ];
 
-        pub const GROUP_THREE_OPS: [fn(&mut R6502, &mut dyn Bus); 8] = [
+    pub const GROUP_THREE_OPS: [fn(&mut R6502, &mut dyn Bus); 8] = [
             Instructions::ERR,
             Instructions::BIT,  // 001	BIT
             Instructions::JMP,  // 010	JMP
@@ -54,7 +55,7 @@ impl Instructions
             Instructions::CPX,  // 111	CPX
         ];
 
-        pub const GROUP_BRANCHING_OPS: [fn(&mut R6502, &mut dyn Bus); 8] = [
+    pub const GROUP_BRANCHING_OPS: [fn(&mut R6502, &mut dyn Bus); 8] = [
             Instructions::BPL,	
             Instructions::BMI,	
             Instructions::BVC,	
@@ -65,6 +66,40 @@ impl Instructions
             Instructions::BEQ,
         ];
        
+    pub const GROUP_IRP_OPS: [fn(&mut R6502, &mut dyn Bus); 4] = [
+            Instructions::BRK,
+            Instructions::JSR,
+            Instructions::RTI,
+            Instructions::RTS,
+        ];
+
+    
+    pub const GROUP_SB1_OPS: [fn(&mut R6502, &mut dyn Bus); 16] = [
+        Instructions::PHP, 
+        Instructions::CLC, 
+        Instructions::PLP, 
+        Instructions::SEC, 
+        Instructions::PHA, 
+        Instructions::CLI, 
+        Instructions::PLA, 
+        Instructions::SEI, 
+        Instructions::DEY, 
+        Instructions::TYA, 
+        Instructions::TAY, 
+        Instructions::CLV, 
+        Instructions::INY, 
+        Instructions::CLD, 
+        Instructions::INX, 
+        Instructions::SED,
+    ];
+    pub const GROUP_SB2_OPS: [fn(&mut R6502, &mut dyn Bus); 6] = [
+        Instructions::TXA,	
+        Instructions::TXS, 
+        Instructions::TAX, 
+        Instructions::TSX, 
+        Instructions::DEX,	
+        Instructions::NOP,
+    ];
        
         
 }
@@ -79,6 +114,8 @@ impl Instructions
 
     ///////////////////////////////////////////////////////////
     // GROUP ONE
+    ///////////////////////////////////////////////////////////
+    
     pub fn ORA(cpu: &mut R6502, _bus: &mut dyn Bus)
     {
         let data = cpu.working_data as u8;
@@ -255,6 +292,8 @@ impl Instructions
 
     ///////////////////////////////////////////////////////////
     // GROUP TWO
+    ///////////////////////////////////////////////////////////
+    
     pub fn ASL(cpu: &mut R6502, bus: &mut dyn Bus)
     {
         cpu.clear_flag(Flags::C);
@@ -450,6 +489,8 @@ impl Instructions
 
     ///////////////////////////////////////////////////////////
     // GROUP THREE
+    ///////////////////////////////////////////////////////////
+    
     pub fn BIT(cpu: &mut R6502, bus: &mut dyn Bus)
     {
         cpu.set_flag(Flags::Z);
@@ -549,6 +590,8 @@ impl Instructions
 
     ///////////////////////////////////////////////////////////
     // BRANCHING
+    ///////////////////////////////////////////////////////////
+    
     fn BPL(cpu: &mut R6502, bus: &mut dyn Bus)
     {
         if cpu.check_flag(Flags::N) == 0
@@ -615,8 +658,187 @@ impl Instructions
 
     ///////////////////////////////////////////////////////////
     // INTERRUPT AND SUBROUTINE
+    ///////////////////////////////////////////////////////////
+
+    pub fn BRK(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+
+        let pc_hi = ((cpu.pc & 0xFF00) >> 8) as u8; 
+        let pc_lo = (cpu.pc & 0x00FF) as u8; 
+        stack_push(pc_hi, cpu, bus, );
+        stack_push(pc_lo, cpu, bus, );
+
+        stack_push(cpu.status, cpu, bus);
+
+        let addr_hi = bus.read(0xFFFE);
+        let addr_lo = bus.read(0xFFFF);
+        cpu.pc = ((addr_hi as u16) << 8) | (addr_lo as u16);
+        cpu.set_flag(Flags::B);
+    }
+
+    pub fn JSR(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+        cpu.pc -= 1;
+        let pc_hi = ((cpu.pc & 0xFF00) >> 8) as u8;
+        let pc_lo = (cpu.pc & 0x00FF) as u8;
+
+        stack_push(pc_hi, cpu, bus);
+        stack_push(pc_lo, cpu, bus);
+
+        // NOTE: Not 100% sure this is the address and not
+        //      the address of the address (i.e. working_data).
+        cpu.pc = cpu.working_addr;
+
+    }
+
+    pub fn RTI(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+        cpu.status = stack_pop(cpu, bus);
+        let pc_lo = stack_pop(cpu, bus) as u16;
+        let pc_hi = stack_pop(cpu, bus) as u16;
+
+        cpu.pc = (pc_hi << 8) | pc_lo;
+    }
+
+    pub fn RTS(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+        let pc_lo = stack_pop(cpu, bus) as u16;
+        let pc_hi = stack_pop(cpu, bus) as u16;
+
+        cpu.pc = (pc_hi << 8) | pc_lo;
+        cpu.pc += 1;
+    }
+
+
 
     ///////////////////////////////////////////////////////////
     // SINGLE BYTE
+
+    pub fn PHP(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+        stack_push(cpu.status, cpu, bus);
+    }
+    
+    pub fn CLC(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+        cpu.clear_flag(Flags::C);
+    }
+    
+    pub fn PLP(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+        cpu.status = stack_pop(cpu, bus);
+    }
+    
+    pub fn SEC(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+        cpu.set_flag(Flags::C);
+    }
+    
+    pub fn PHA(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+        stack_push(cpu.a, cpu, bus);
+    }
+    
+    pub fn CLI(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+        cpu.clear_flag(Flags::I);
+    }
+    
+    pub fn PLA(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+        cpu.a = stack_pop(cpu, bus);
+
+        cpu.set_zn_flags(cpu.a);
+    }
+    
+    pub fn SEI(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+        cpu.set_flag(Flags::I);
+    }
+    
+    pub fn DEY(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+        cpu.y -= 1;
+
+        cpu.set_zn_flags(cpu.y);
+    }
+    
+    pub fn TYA(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+        cpu.a = cpu.y;
+
+        cpu.set_zn_flags(cpu.a);
+    }
+    
+    pub fn TAY(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+        cpu.y = cpu.a;
+
+        cpu.set_zn_flags(cpu.y);
+    }
+    
+    pub fn CLV(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+        cpu.clear_flag(Flags::V);
+    }
+    
+    pub fn INY(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+        cpu.y += 1;
+
+        cpu.set_zn_flags(cpu.y);
+    }
+    
+    pub fn CLD(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+        cpu.clear_flag(Flags::D);
+    }
+    
+    pub fn INX(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+        cpu.x += 1;
+
+        cpu.set_zn_flags(cpu.x);
+    }
+    
+    pub fn SED(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+        cpu.set_flag(Flags::D);
+    }
+
+    pub fn TXA(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+        cpu.a = cpu.x;
+        cpu.set_zn_flags(cpu.a);
+    }
+
+    pub fn TXS(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+        cpu.sp = (cpu.x as u16) + 0x100;
+    }
+
+    pub fn TAX(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+        cpu.x = cpu.a;
+        cpu.set_zn_flags(cpu.x);
+    }
+
+    pub fn TSX(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+        cpu.x = (cpu.sp - 0x100) as u8;
+    }
+
+    pub fn DEX(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+        cpu.x -= 1;
+        cpu.set_zn_flags(cpu.x);
+    }
+
+    pub fn NOP(cpu: &mut R6502, bus: &mut dyn Bus)
+    {
+
+    }
+
+    
 
 }
