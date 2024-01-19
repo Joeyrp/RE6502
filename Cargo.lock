@@ -5,3 +5,10 @@ version = 3
 [[package]]
 name = "re6502"
 version = "0.1.0"
+
+[[package]]
+name = "simple_test_machine"
+version = "0.1.0"
+dependencies = [
+ "re6502",
+]

@@ -59,6 +59,8 @@ pub struct R6502
     addr_mode: ModeID,
     working_data: u16,   // value fetched for the ALU
     working_addr: u16,
+
+    program_stopped: bool,
 }
 
 impl R6502
@@ -66,7 +68,8 @@ impl R6502
     // constructor
     pub fn new() -> R6502
     {
-        R6502 { a: 0, x: 0, y: 0, pc: 0, sp: 0, status: 0, cycles: 0, addr_mode: ModeID::IMP, working_data: 0, working_addr: 0 }
+        R6502 { a: 0, x: 0, y: 0, pc: 0, sp: 0, status: 0, cycles: 0, addr_mode: ModeID::IMP, 
+                    working_data: 0, working_addr: 0, program_stopped: true }
     }
 
     // Debug Access
@@ -100,6 +103,11 @@ impl R6502
         }
     }
 
+    pub fn is_program_stopped(&self) -> bool
+    {
+        self.program_stopped
+    }
+
     // signals
     pub fn clock(&mut self, bus: &mut dyn Bus)
     {
@@ -115,7 +123,7 @@ impl R6502
             //self.pc += 1; 
         //}
 
-        self.cycles -= 1;
+        // self.cycles -= 1;
     }
 
     pub fn reset(&mut self, bus: &mut dyn Bus)
@@ -135,6 +143,7 @@ impl R6502
         // internal helper variables
         self.working_data = 0;
         // self.working_addr = 0;
+        self.program_stopped = false;
 
         self.cycles = 8;
     }
@@ -254,7 +263,20 @@ fn execute(instruction: u8, cpu: &mut R6502, bus: &mut dyn Bus)
         BRK => {Instructions::BRK(cpu, bus); return; }
         JSR => {Instructions::JSR(cpu, bus); return; }
         RTI => {Instructions::RTI(cpu, bus); return; }
-        RTS => {Instructions::RTS(cpu, bus); return; }
+        RTS => 
+        {
+            // Use the stack pointer to detect if this is the end of the program
+            if cpu.sp == 0x01FF
+            {
+                cpu.program_stopped = true;
+            }
+            else
+            {
+                Instructions::RTS(cpu, bus); 
+            }
+
+            return; 
+        }
 
         _ => ()
     }

@@ -5,12 +5,15 @@ General:
     ☐ Add a disassembler for debugging
         ☐ Debug data lookup for instructions
 
+Test Machine:
+    ✔ Hello world program @done(24-01-19 17:09)
+
 CPU:
     Signals:
         ✔ Clock @done(23-11-07 20:45)
         ✔ Reset @done(23-11-07 20:46)
-        ☐ irq function
-        ☐ nmi function
+        ✔ irq function @done(24-01-19 13:17)
+        ✔ nmi function @done(24-01-19 13:17)
 
 Addressing modes:
     ✔ IMP - Implied @done(23-11-07 14:01)
@@ -18,9 +21,9 @@ Addressing modes:
     ✔ ZP0 - Zero Page @done(23-11-07 14:40)
     ✔ ZPX - Zero Page, X @done(23-11-07 14:40)
     ✔ ZPY - Zero Page, Y @done(23-11-07 14:40)
-    ☐ REL - Relative
+    ✔ REL - Relative @done(24-01-19 13:17)
         ✔ Code @done(23-11-07 20:44)
-        ☐ Test
+        ✔ Test @done(24-01-19 13:17)
     ✔ ABS - Absolute @done(23-11-07 20:25)
     ✔ ABX - Absolute, X @done(23-11-07 20:25)
     ✔ ABY - Absolute, Y @done(23-11-07 20:25)
@@ -69,36 +72,36 @@ Instructions:
         ✔ F0   BEQ @done(24-01-12 16:49)
 
     INTERRUPT/SUBROUTINE:
-        ☐ 00   BRK
-        ☐ 20   JSR abs
-        ☐ 40   RTI
-        ☐ 60   RTS
+        ✔ 00   BRK @done(24-01-19 13:16)
+        ✔ 20   JSR abs @done(24-01-19 13:16)
+        ✔ 40   RTI @done(24-01-19 13:16)
+        ✔ 60   RTS @done(24-01-19 13:16)
 
     SINGLE-BYTE:
-        ☐ 08  PHP
-        ☐ 28  PLP
-        ☐ 48  PHA 	
-        ☐ 68  PLA 	
-        ☐ 88  DEY 	
-        ☐ A8  TAY 	
-        ☐ C8  INY 	
-        ☐ E8  INX    		 	 	 	 	 	
+        ✔ 08  PHP @done(24-01-19 13:16)
+        ✔ 28  PLP @done(24-01-19 13:16)
+        ✔ 48  PHA @done(24-01-19 13:16)
+        ✔ 68  PLA @done(24-01-19 13:16)
+        ✔ 88  DEY @done(24-01-19 13:16)
+        ✔ A8  TAY @done(24-01-19 13:16)
+        ✔ C8  INY @done(24-01-19 13:16)
+        ✔ E8  INX @done(24-01-19 13:16)
 
-        ☐ 18  CLC 	
-        ☐ 38  SEC 	
-        ☐ 58  CLI 	
-        ☐ 78  SEI 	
-        ☐ 98  TYA 	
-        ☐ B8  CLV 	
-        ☐ D8  CLD 	
-        ☐ F8  SED
+        ✔ 18  CLC @done(24-01-19 13:16)
+        ✔ 38  SEC @done(24-01-19 13:16)
+        ✔ 58  CLI @done(24-01-19 13:16)
+        ✔ 78  SEI @done(24-01-19 13:16)
+        ✔ 98  TYA @done(24-01-19 13:16)
+        ✔ B8  CLV @done(24-01-19 13:16)
+        ✔ D8  CLD @done(24-01-19 13:16)
+        ✔ F8  SED @done(24-01-19 13:16)
 
-        ☐ 8A  TXA 	
-        ☐ 9A  TXS 	
-        ☐ AA  TAX 	
-        ☐ BA  TSX 	
-        ☐ CA  DEX 	
-        ☐ EA  NOP
+        ✔ 8A  TXA @done(24-01-19 13:16)
+        ✔ 9A  TXS @done(24-01-19 13:16)
+        ✔ AA  TAX @done(24-01-19 13:16)
+        ✔ BA  TSX @done(24-01-19 13:16)
+        ✔ CA  DEX @done(24-01-19 13:16)
+        ✔ EA  NOP @done(24-01-19 13:16)
 
          	 	 	 	 	
 
