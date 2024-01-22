@@ -1,13 +1,35 @@
+
+
+use std::{ fs, env };
+
+mod machine;
 use machine::{OUTPUT_ADDR, PRINT_STR_FLAG, PRINT_BYTE_FLAG, TestMachine};
 
 
-mod machine;
 
 fn main()
 {
-    hello_world_test();
-    println!();
-    fast_mult_by_10();
+    let args: Vec<String> = env::args().collect();
+
+    if args.len() < 2
+    {
+        println!("No program provided, running internal test programs...");
+        hello_world_test();
+        println!();
+        fast_mult_by_10(7);
+
+        return;
+    }
+
+    let program = fs::read(&args[1]).expect(&format!("Failed read program file: {}", &args[1]));
+    
+    let mut vm = TestMachine::new();
+
+    vm.load_program(&program);
+    vm.reset();
+    vm.run_program();
+
+    println!("Program stopped");
 }
 
 fn hello_world_test()
@@ -66,7 +88,7 @@ fn hello_world_test()
 
 }
 
-fn fast_mult_by_10()
+fn fast_mult_by_10(val: u8)
 {
     // Program from:
     // http://6502.org/source/integers/fastx10.htm
@@ -88,7 +110,7 @@ fn fast_mult_by_10()
 
     let program = 
     [
-        0xA9, 0x07,         // LDA 7    - The value we want to multiply
+        0xA9, val,         // LDA val    - The value we want to multiply
 
         // START OF MULT10 FUNCTION
         0x0A,               // ASL ;multiply by 2

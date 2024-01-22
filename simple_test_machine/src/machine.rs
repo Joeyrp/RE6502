@@ -52,11 +52,10 @@ impl Bus for TBus
 //				CONSOLE
 //|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
-pub const OUTPUT_ADDR: u16 = 0x00A0;
-pub const PRINT_BYTE_FLAG: u16 = 0x009E;
-pub const PRINT_STR_FLAG: u16 = 0x009F;
+pub const OUTPUT_ADDR: u16 = 0x00A0;        // Put values to be printed at this location!
+pub const PRINT_BYTE_FLAG: u16 = 0x009F;    // Then set one of these flags to trigger the print
+pub const PRINT_STR_FLAG: u16 = 0x009E;     //  and indicate what type is being printed.
 
-// TODO: Handle input
 struct OutputConsole
 {
 

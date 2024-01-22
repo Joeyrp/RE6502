@@ -5,6 +5,8 @@
     "version": "0.2.0",
     "configurations": [
 
+
+
         {
             "type": "lldb",
             "request": "launch",
@@ -57,7 +59,7 @@
                     "kind": "bin"
                 }
             },
-            "args": [],
+            "args": ["simple_test_machine\\programs\\mult10.bin"],
             "cwd": "${workspaceFolder}"
         },
     ]
