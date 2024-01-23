@@ -581,7 +581,7 @@ impl Instructions
         }
 
         cpu.clear_flag(Flags::N);
-        if (cpu.x as u16 - cpu.working_data) & 0x80 > 0
+        if (cpu.x as i8 - cpu.working_data as i8) as u8 & 0x80 > 0
         {
             cpu.set_flag(Flags::N);
         }
@@ -596,7 +596,12 @@ impl Instructions
     {
         if cpu.check_flag(Flags::N) == 0
         {
-            cpu.pc += cpu.working_data;
+            // The branch offset can be negative so we need to do some
+            // type juggling to make that work
+            let offset = cpu.working_data as i8;         // allow the value to be negative
+            let offset_wide = offset as i16;            // Expand to match the 2 byte pc while retaning the possible negative sign
+            let new_pc = cpu.pc as i16 + offset_wide;   // Add the offset
+            cpu.pc = new_pc as u16;                          // Store the offset
         }
     }	
 
@@ -604,7 +609,10 @@ impl Instructions
     {
         if cpu.check_flag(Flags::N) != 0
         {
-            cpu.pc += cpu.working_data;
+            let offset = cpu.working_data as i8;
+            let offset_wide = offset as i16;
+            let new_pc = cpu.pc as i16 + offset_wide;
+            cpu.pc = new_pc as u16;
         }
     }	
 
@@ -612,7 +620,10 @@ impl Instructions
     {
         if cpu.check_flag(Flags::V) == 0
         {
-            cpu.pc += cpu.working_data;
+            let offset = cpu.working_data as i8;
+            let offset_wide = offset as i16;
+            let new_pc = cpu.pc as i16 + offset_wide;
+            cpu.pc = new_pc as u16;
         }
     }	
 
@@ -620,7 +631,10 @@ impl Instructions
     {
         if cpu.check_flag(Flags::V) != 0
         {
-            cpu.pc += cpu.working_data;
+            let offset = cpu.working_data as i8;
+            let offset_wide = offset as i16;
+            let new_pc = cpu.pc as i16 + offset_wide;
+            cpu.pc = new_pc as u16;
         }
     }	
 
@@ -628,7 +642,10 @@ impl Instructions
     {
         if cpu.check_flag(Flags::C) == 0
         {
-            cpu.pc += cpu.working_data;
+            let offset = cpu.working_data as i8;
+            let offset_wide = offset as i16;
+            let new_pc = cpu.pc as i16 + offset_wide;
+            cpu.pc = new_pc as u16;
         }
     }	
 
@@ -636,7 +653,10 @@ impl Instructions
     {
         if cpu.check_flag(Flags::C) != 0
         {
-            cpu.pc += cpu.working_data;
+            let offset = cpu.working_data as i8;
+            let offset_wide = offset as i16;
+            let new_pc = cpu.pc as i16 + offset_wide;
+            cpu.pc = new_pc as u16;
         }
     } 
 
@@ -644,7 +664,10 @@ impl Instructions
     {
         if cpu.check_flag(Flags::Z) == 0
         {
-            cpu.pc += cpu.working_data;
+            let offset = cpu.working_data as i8;
+            let offset_wide = offset as i16;
+            let new_pc = cpu.pc as i16 + offset_wide;
+            cpu.pc = new_pc as u16;
         }
     }	
 
@@ -652,7 +675,10 @@ impl Instructions
     {
         if cpu.check_flag(Flags::Z) != 0
         {
-            cpu.pc += cpu.working_data;
+            let offset = cpu.working_data as i8;
+            let offset_wide = offset as i16;
+            let new_pc = cpu.pc as i16 + offset_wide;
+            cpu.pc = new_pc as u16;
         }
     }
 

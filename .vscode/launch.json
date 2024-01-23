@@ -7,6 +7,7 @@
 
 
 
+
         {
             "type": "lldb",
             "request": "launch",
@@ -59,7 +60,7 @@
                     "kind": "bin"
                 }
             },
-            "args": ["simple_test_machine\\programs\\mult10.bin"],
+            "args": ["simple_test_machine\\programs\\hello.bin"],
             "cwd": "${workspaceFolder}"
         },
     ]

@@ -1,4 +1,9 @@
 
+BUGS:
+    ✔ Branch instructions seem to jump to the wrong place @done(24-01-22 19:08)
+        - looks like the offset should be able to be a negative value but it's not
+
+
 General:
     ✔ Add unit tests for each instruction and address mode @done(23-11-07 19:57)
     ☐ Fully implement clock cycle tracking

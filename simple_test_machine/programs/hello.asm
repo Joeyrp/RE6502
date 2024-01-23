@@ -1,37 +1,31 @@
-        # Load string into memory at the output address
-        0xA2, b'H',             # LDX H
-        0x86, output_addr,      # STX
-        0xA2, b'e',             # LDX e
-        0x86, output_addr + 1,  # STX
-        0xA2, b'l',             # LDX l
-        0x86, output_addr + 2,  # STX
-        0xA2, b'l',             # LDX l
-        0x86, output_addr + 3,  # STX
-        0xA2, b'o',             # LDX o
-        0x86, output_addr + 4,  # STX
 
-        0xA2, b' ',             # LDX ' '
-        0x86, output_addr + 5,  # STX
+; hello world example
+; for win2c64 by Aart Bik
+; http://www.aartbik.com/
 
-        0xA2, b'w',             # LDX w
-        0x86, output_addr + 6,  # STX
-        0xA2, b'o',             # LDX o
-        0x86, output_addr + 7,  # STX
-        0xA2, b'r',             # LDX r
-        0x86, output_addr + 8,  # STX
-        0xA2, b'l',             # LDX l
-        0x86, output_addr + 9,  # STX
-        0xA2, b'd',             # LDX d
-        0x86, output_addr + 10, # STX
-        0xA2, b'!',             # LDX !
-        0x86, output_addr + 11, # STX
+; Adapted for the RE6502 emulator simple test machine
 
-        0xA2, 0x00,             # LDX 0
-        0x86, output_addr + 12, # STX
+strout          .equ   $00A0   ; console output address
+print_flag      .equ   $009E   ; console output address
 
-        # Set flag to do the print
-        0xA2, 0x01,             # LDX 1
-        0x86, print_flag_addr,  # STX
+main    .org   $0200   ; program load address for the simple test machine
+        ldx    #0
+loop    lda    text,x
+        sta    strout,x    
+        inx
+        cpx    #11
+        bne    loop 
 
-        # End the program
-        0x60                    # RTS
+        ; null terminate the string
+        lda #0           
+        sta strout,x          
+
+        ; Set flag to do the print
+        ldx #1           ; 0xA2, 0x01,  
+        stx print_flag   ; 0x86, 0x9E, ; Print string flag is at 0x9E
+
+        ; End the program
+        rts            ; 0x60 
+
+        ; Variables
+text    .byte  "HELLO WORLD"
