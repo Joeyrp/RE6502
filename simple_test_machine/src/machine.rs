@@ -1,21 +1,22 @@
 
 
-use std::str;
+use std::{io, str};
 
 //|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-//				USED MEMORY ADDRESSES
+//				MEMORY ADDRESSES AND FLAGS
 //|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 const PROGRAM_START_ADDR: u16 = 0x0200;     // Program code starts on page 2
 const CPU_RESET_START_ADDR: u16 = 0xFFFC;   // This is where the cpu looks for the address to start executing code at
 
 pub const OUTPUT_BUF_ADDR: u16 = 0x1100;    // Output buffer -- Put values to be printed at this location!
 pub const INPUT_BUF_ADDR: u16 = 0x1200;     // Input buffer
+pub const INPUT_BUF_SIZE: u16 = 0x00FF;     // Input buffer is 255 bytes
 
 pub const CONSOLE_FLAGS_ADDR: u16 = 0x009A; // Grouping all of the console flags into a single byte
 
 pub const PRINT_BYTE_FLAG: u8 = 0x01;    // Then set one of these flags to trigger the print
 pub const PRINT_STR_FLAG:  u8 = 0x02;    //      and indicate what type is being printed.
-pub const READ_KB_FLAG:    u8 = 0x04;    // Set this address to 1 to request user input from the keyboard
+pub const READ_LINE_FLAG:    u8 = 0x04;    // Set this flag to request user input from the keyboard
 
 /////////////////////////////////////////////////////////////////////
 //				BUS
@@ -104,15 +105,14 @@ impl OutputConsole
         }
 
         // Check for byte to print
-        let mut flag = bus.read(CONSOLE_FLAGS_ADDR);
-        if (flag & PRINT_BYTE_FLAG)!= 0
+        else if (value & PRINT_BYTE_FLAG)!= 0
         {
             // read the byte
             let byte = bus.read(OUTPUT_BUF_ADDR);
 
             // reset the flag
-            flag &= !(PRINT_BYTE_FLAG);
-            bus.write(CONSOLE_FLAGS_ADDR, flag);
+            value &= !(PRINT_BYTE_FLAG);
+            bus.write(CONSOLE_FLAGS_ADDR, value);
 
             // print the byte
             println!("{}", byte as u8);
@@ -132,7 +132,37 @@ impl InputConsole
 {
     fn clock(_cpu: &mut R6502, bus: &mut TBus)
     {
+        // Check input request flag
+        let mut value = bus.read(CONSOLE_FLAGS_ADDR);
+        if (value & READ_LINE_FLAG) != 0
+        {
+            let mut buffer = String::new();
+            let stdin = io::stdin();
+            stdin.read_line(&mut buffer).expect("Failed to read input from the console");
 
+            // Make sure the string will fit in the input buffer
+            if (buffer.len() + 1) as u16 >= INPUT_BUF_SIZE
+            {
+                // TODO: Change this to set an error flag instead of printing. This way
+                //          the program can detect and handle these errors.
+                println!("ERROR: InputConsole cannot store input string into memory, string is too large");
+                return;
+            }
+
+            // Store input in the input buffer
+            for (i, byte) in buffer.chars().enumerate()
+            {
+                bus.write(INPUT_BUF_ADDR + (i as u16), byte as u8);
+            }
+
+            // Add the null byte to the end
+            bus.write(INPUT_BUF_ADDR + buffer.len() as u16, 0);
+
+            // reset the flag
+            value &= !(READ_LINE_FLAG);
+            bus.write(CONSOLE_FLAGS_ADDR, value);
+
+        }
     }
 }
 
@@ -185,10 +215,7 @@ impl TestMachine
         {
             self.cpu.clock(&mut self.bus);
             OutputConsole::clock(&mut self.cpu, &mut self.bus);
-
-            // TODO: Check if the input flag is set (need to choose a memory location for it)
-            //          if it's set, prompt for input and copy the input into memory (need an address for that too)
-            //  ACTUALLY: Move that logic into a new module (InputConsole) and just call clock() (like OutputConsole)
+            InputConsole::clock(&mut self.cpu, &mut self.bus);
         }
     }
 }
