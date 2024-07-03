@@ -11,7 +11,6 @@ if %ERRORLEVEL% NEQ 0 (
 	echo failed to assemble %src_file%
 	goto EXIT
 )
-
 set out_file=%src_file:~0,-4%
 set out_file=%out_file%.rw
 
