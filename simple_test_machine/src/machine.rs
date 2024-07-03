@@ -12,11 +12,11 @@ pub const OUTPUT_BUF_ADDR: u16 = 0x1100;    // Output buffer -- Put values to be
 pub const INPUT_BUF_ADDR: u16 = 0x1200;     // Input buffer
 pub const INPUT_BUF_SIZE: u16 = 0x00FF;     // Input buffer is 255 bytes
 
-pub const CONSOLE_FLAGS_ADDR: u16 = 0x009A; // Grouping all of the console flags into a single byte
-
-pub const PRINT_BYTE_FLAG: u8 = 0x01;    // Then set one of these flags to trigger the print
-pub const PRINT_STR_FLAG:  u8 = 0x02;    //      and indicate what type is being printed.
-pub const READ_LINE_FLAG:    u8 = 0x04;    // Set this flag to request user input from the keyboard
+pub const CONSOLE_FLAGS_ADDR:   u16 = 0x009A; // Grouping all of the console flags into a single byte
+pub const PRINT_BYTE_FLAG:      u8 = 0x01;    // Then set one of these flags to trigger the print
+pub const PRINT_STR_FLAG:       u8 = 0x02;    //      and indicate what type is being printed.
+pub const READ_LINE_FLAG:       u8 = 0x04;    // Set this flag to request user input from the keyboard
+pub const READ_OVERFLOW_FLAG:   u8 = 0x08;    // This flag is set after reading input if there is too much input for the buffer
 
 /////////////////////////////////////////////////////////////////////
 //				BUS
@@ -65,23 +65,19 @@ impl Bus for TBus
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-//				CONSOLE OUTPUT
+//				CONSOLE
 //|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+struct Console {}
 
-
-struct OutputConsole
+impl Console
 {
-
-}
-
-impl OutputConsole
-{
-    // fn new() -> Console
-    // {
-    //     Console { }
-    // }
-
     fn clock(_cpu: &mut R6502, bus: &mut TBus )
+    {
+        Self::clock_output(_cpu, bus);
+        Self::clock_input(_cpu, bus);
+    }
+
+    fn clock_output(_cpu: &mut R6502, bus: &mut TBus )
     {
         // Check for a string to print
         let mut value = bus.read(CONSOLE_FLAGS_ADDR);
@@ -119,18 +115,8 @@ impl OutputConsole
         }
 
     }
-}
 
-//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-//				CONSOLE INPUT
-//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-
-
-struct InputConsole {}
-
-impl InputConsole
-{
-    fn clock(_cpu: &mut R6502, bus: &mut TBus)
+    fn clock_input(_cpu: &mut R6502, bus: &mut TBus)
     {
         // Check input request flag
         let mut value = bus.read(CONSOLE_FLAGS_ADDR);
@@ -145,7 +131,13 @@ impl InputConsole
             {
                 // TODO: Change this to set an error flag instead of printing. This way
                 //          the program can detect and handle these errors.
-                println!("ERROR: InputConsole cannot store input string into memory, string is too large");
+                
+                // reset the read flag and set the overflow flag
+                value &= !(READ_LINE_FLAG);
+                value |= READ_OVERFLOW_FLAG;
+                bus.write(CONSOLE_FLAGS_ADDR, value);
+
+                println!("ERROR: Console cannot store input string into memory, string is too large");
                 return;
             }
 
@@ -164,6 +156,18 @@ impl InputConsole
 
         }
     }
+}
+
+//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+//				CONSOLE INPUT
+//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+
+struct InputConsole {}
+
+impl InputConsole
+{
+    
 }
 
 
@@ -214,8 +218,7 @@ impl TestMachine
         while !self.cpu.is_program_stopped() && self.cpu.check_flag(Flags::B) == 0
         {
             self.cpu.clock(&mut self.bus);
-            OutputConsole::clock(&mut self.cpu, &mut self.bus);
-            InputConsole::clock(&mut self.cpu, &mut self.bus);
+            Console::clock(&mut self.cpu, &mut self.bus);
         }
     }
 }

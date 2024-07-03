@@ -60,7 +60,7 @@
                     "kind": "bin"
                 }
             },
-            "args": ["simple_test_machine\\programs\\echo.rw"],
+            "args": ["simple_test_machine\\programs\\bin\\echo.rw"],
             "cwd": "${workspaceFolder}"
         },
     ]
