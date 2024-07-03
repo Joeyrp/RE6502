@@ -3,8 +3,9 @@
 ; For testing this program was assembled with c64 (using the -R option):
 ; https://www.aartbik.com/MISC/c64.html
 
-strout          .equ   $1100   ; console output address
-print_flag      .equ   $009E   ; str print flag address
+strout          .equ    $1100   ; console output address
+con_flags       .equ    $009A   ; console flags address
+prt_str_flag    .equ    $0001   ; print string flag
 
         ; FAST MULTIPLY program from:
         ; http://6502.org/source/integers/fastx10.htm
@@ -22,8 +23,9 @@ main    LDA #7      ; load 7 into the accumulator
         STX strout+1    ; store null terminator to output addr + 1
 
         ; Set flag to do the print
-        LDX #1           ; 0xA2, 0x01,  
-        STX $9F          ; 0x86, 0x9F, ; Print byte flag is at 0x9F
+        LDA con_flags    ; load the current console flag set
+        ORA #prt_str_flag ; turn on the print string flag
+        STA con_flags    ; store the flags back in memory
 
         ; End the program
         RTS            ; 0x60 

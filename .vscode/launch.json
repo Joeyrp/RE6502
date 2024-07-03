@@ -60,7 +60,7 @@
                     "kind": "bin"
                 }
             },
-            "args": ["simple_test_machine\\programs\\hello.bin"],
+            "args": ["simple_test_machine\\programs\\hello.rw"],
             "cwd": "${workspaceFolder}"
         },
     ]

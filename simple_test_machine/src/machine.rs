@@ -13,10 +13,9 @@ pub const INPUT_BUF_ADDR: u16 = 0x1200;     // Input buffer
 
 pub const CONSOLE_FLAGS_ADDR: u16 = 0x009A; // Grouping all of the console flags into a single byte
 
-pub const PRINT_BYTE_FLAG: u16 = 0x009F;    // Then set one of these flags to trigger the print
-pub const PRINT_STR_FLAG: u16 = 0x009E;     //      and indicate what type is being printed.
-
-pub const READ_KB_FLAG: u16 = 0x009D;       // Set this address to 1 to request user input from the keyboard
+pub const PRINT_BYTE_FLAG: u8 = 0x01;    // Then set one of these flags to trigger the print
+pub const PRINT_STR_FLAG:  u8 = 0x02;    //      and indicate what type is being printed.
+pub const READ_KB_FLAG:    u8 = 0x04;    // Set this address to 1 to request user input from the keyboard
 
 /////////////////////////////////////////////////////////////////////
 //				BUS
@@ -84,8 +83,8 @@ impl OutputConsole
     fn clock(_cpu: &mut R6502, bus: &mut TBus )
     {
         // Check for a string to print
-        let mut value = bus.read(PRINT_STR_FLAG);
-        if value != 0
+        let mut value = bus.read(CONSOLE_FLAGS_ADDR);
+        if (value & PRINT_STR_FLAG) != 0
         {
             let mut msg: Vec<u8> = Vec::new();
             
@@ -98,17 +97,24 @@ impl OutputConsole
             }
 
             // Mark the string as empty again
-            bus.write(PRINT_STR_FLAG, 0);
+            value &= !(PRINT_STR_FLAG);
+            bus.write(CONSOLE_FLAGS_ADDR, value);
 
             println!("{}", str::from_utf8(&msg).unwrap());
         }
 
         // Check for byte to print
-        let flag = bus.read(PRINT_BYTE_FLAG);
-        if flag != 0
+        let mut flag = bus.read(CONSOLE_FLAGS_ADDR);
+        if (flag & PRINT_BYTE_FLAG)!= 0
         {
+            // read the byte
             let byte = bus.read(OUTPUT_BUF_ADDR);
-            bus.write(PRINT_BYTE_FLAG, 0);
+
+            // reset the flag
+            flag &= !(PRINT_BYTE_FLAG);
+            bus.write(CONSOLE_FLAGS_ADDR, flag);
+
+            // print the byte
             println!("{}", byte as u8);
         }
 
