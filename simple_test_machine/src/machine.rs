@@ -2,6 +2,22 @@
 
 use std::str;
 
+//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+//				USED MEMORY ADDRESSES
+//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+const PROGRAM_START_ADDR: u16 = 0x0200;     // Program code starts on page 2
+const CPU_RESET_START_ADDR: u16 = 0xFFFC;   // This is where the cpu looks for the address to start executing code at
+
+pub const OUTPUT_BUF_ADDR: u16 = 0x1100;    // Output buffer -- Put values to be printed at this location!
+pub const INPUT_BUF_ADDR: u16 = 0x1200;     // Input buffer
+
+pub const CONSOLE_FLAGS_ADDR: u16 = 0x009A; // Grouping all of the console flags into a single byte
+
+pub const PRINT_BYTE_FLAG: u16 = 0x009F;    // Then set one of these flags to trigger the print
+pub const PRINT_STR_FLAG: u16 = 0x009E;     //      and indicate what type is being printed.
+
+pub const READ_KB_FLAG: u16 = 0x009D;       // Set this address to 1 to request user input from the keyboard
+
 /////////////////////////////////////////////////////////////////////
 //				BUS
 /////////////////////////////////////////////////////////////////////
@@ -49,12 +65,9 @@ impl Bus for TBus
 }
 
 //|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-//				CONSOLE
+//				CONSOLE OUTPUT
 //|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 
-pub const OUTPUT_ADDR: u16 = 0x00A0;        // Put values to be printed at this location!
-pub const PRINT_BYTE_FLAG: u16 = 0x009F;    // Then set one of these flags to trigger the print
-pub const PRINT_STR_FLAG: u16 = 0x009E;     //  and indicate what type is being printed.
 
 struct OutputConsole
 {
@@ -79,7 +92,7 @@ impl OutputConsole
             let mut idx = 0;
             while value != 0
             {
-                value = bus.read(OUTPUT_ADDR + idx);
+                value = bus.read(OUTPUT_BUF_ADDR + idx);
                 msg.push(value);
                 idx += 1;
             }
@@ -94,7 +107,7 @@ impl OutputConsole
         let flag = bus.read(PRINT_BYTE_FLAG);
         if flag != 0
         {
-            let byte = bus.read(OUTPUT_ADDR);
+            let byte = bus.read(OUTPUT_BUF_ADDR);
             bus.write(PRINT_BYTE_FLAG, 0);
             println!("{}", byte as u8);
         }
@@ -102,12 +115,28 @@ impl OutputConsole
     }
 }
 
+//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+//				CONSOLE INPUT
+//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+
+
+struct InputConsole {}
+
+impl InputConsole
+{
+    fn clock(_cpu: &mut R6502, bus: &mut TBus)
+    {
+
+    }
+}
+
+
+
 /////////////////////////////////////////////////////////////////////
 //				MACHINE
 /////////////////////////////////////////////////////////////////////
 
-const PROGRAM_START_ADDR: u16 = 0x0200;     // Program code starts on page 2
-const CPU_RESET_START_ADDR: u16 = 0xFFFC;   // This is where the cpu looks for the address to start executing code at
+
 
 pub struct TestMachine
 {
@@ -150,6 +179,10 @@ impl TestMachine
         {
             self.cpu.clock(&mut self.bus);
             OutputConsole::clock(&mut self.cpu, &mut self.bus);
+
+            // TODO: Check if the input flag is set (need to choose a memory location for it)
+            //          if it's set, prompt for input and copy the input into memory (need an address for that too)
+            //  ACTUALLY: Move that logic into a new module (InputConsole) and just call clock() (like OutputConsole)
         }
     }
 }

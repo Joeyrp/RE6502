@@ -4,9 +4,10 @@
 ; http://www.aartbik.com/
 
 ; Adapted for the RE6502 emulator simple test machine
+; compile with win2c64 using the -R option
 
-strout          .equ   $00A0   ; console output address
-print_flag      .equ   $009E   ; console output address
+strout          .equ   $1100   ; console output address
+print_flag      .equ   $009E   ; str print flag address
 
 main    .org   $0200   ; program load address for the simple test machine
         ldx    #0

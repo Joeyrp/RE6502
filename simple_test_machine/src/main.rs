@@ -3,7 +3,7 @@
 use std::{ fs, env };
 
 mod machine;
-use machine::{OUTPUT_ADDR, PRINT_STR_FLAG, PRINT_BYTE_FLAG, TestMachine};
+use machine::{OUTPUT_BUF_ADDR, PRINT_STR_FLAG, PRINT_BYTE_FLAG, TestMachine};
 
 
 
@@ -35,7 +35,7 @@ fn main()
 fn hello_world_test()
 {
     let print_flag_addr = (PRINT_STR_FLAG & 0x00FF) as u8;
-    let output_addr = (OUTPUT_ADDR & 0x00FF) as u8;
+    let output_addr = (OUTPUT_BUF_ADDR & 0x00FF) as u8;
     let program = 
     [
         // Load string into memory at the output address
@@ -105,7 +105,7 @@ fn fast_mult_by_10(val: u8)
     //     TEMP    .byte 0
 
     let print_flag_addr = (PRINT_BYTE_FLAG & 0x00FF) as u8;
-    let output_addr = (OUTPUT_ADDR & 0x00FF) as u8;
+    let output_addr = (OUTPUT_BUF_ADDR & 0x00FF) as u8;
     let temp_addr: u8 = 0xB0;
 
     let program = 

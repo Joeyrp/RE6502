@@ -1,3 +1,9 @@
 /target
 *.pdf
+
+# win2c64 output formats
 *.bin
+*.rw
+*.ptf
+
+win2c64/

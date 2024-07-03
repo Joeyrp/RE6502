@@ -3,9 +3,6 @@
 ; For testing this program was assembled with c64 (using the -R option):
 ; https://www.aartbik.com/MISC/c64.html
 
-strout          .equ   $1100   ; console output address
-print_flag      .equ   $009E   ; str print flag address
-
         ; FAST MULTIPLY program from:
         ; http://6502.org/source/integers/fastx10.htm
 main    LDA #7      ; load 7 into the accumulator
@@ -17,9 +14,9 @@ main    LDA #7      ; load 7 into the accumulator
         ADC TEMP    ;as result, A = x*8 + x*2
 
         ; PRINT RESULT
-        STA strout      ; store A into the console output address
-        LDX #0          ; 0xA2, 0x00, ; null terminator
-        STX strout+1    ; store null terminator to output addr + 1
+        STA $A0          ; 0x85, 0xA0, ; store A into the console output address
+        LDX #0           ; 0xA2, 0x00, ; null terminator
+        STX $A1          ; 0x86, 0xA1, ; store null terminator to output addr + 1
 
         ; Set flag to do the print
         LDX #1           ; 0xA2, 0x01,  

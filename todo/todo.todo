@@ -11,6 +11,7 @@ General:
         ☐ Debug data lookup for instructions
 
 Test Machine:
+    ☐ Implement basic input
     ✔ Hello world program @done(24-01-19 17:09)
     ✔ Load and run a given program binary @done(24-01-22 17:08)
 
@@ -109,5 +110,4 @@ Instructions:
         ✔ CA  DEX @done(24-01-19 13:16)
         ✔ EA  NOP @done(24-01-19 13:16)
 
-         	 	 	 	 	
 
