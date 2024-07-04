@@ -11,7 +11,8 @@ General:
         ☐ Debug data lookup for instructions
 
 Test Machine:
-    ☐ Implement basic input
+    ✔ Refactor the OutputConsole and InputConsole into a single Console struct @done(24-07-03 18:39)
+    ✔ Implement basic input @done(24-07-03 18:39)
     ✔ Hello world program @done(24-01-19 17:09)
     ✔ Load and run a given program binary @done(24-01-22 17:08)
 
