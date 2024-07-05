@@ -3,25 +3,35 @@
 use std::{io, str};
 
 //|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-//				MEMORY ADDRESSES AND FLAGS
+//				MEMORY ADDRESSES AND FLAG MASKS
 //|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-const PROGRAM_START_ADDR: u16 = 0x0200;     // Program code starts on page 2
-const CPU_RESET_START_ADDR: u16 = 0xFFFC;   // This is where the cpu looks for the address to start executing code at
 
-pub const OUTPUT_BUF_ADDR: u16 = 0x1100;    // Output buffer -- Put values to be printed at this location!
-pub const INPUT_BUF_ADDR: u16 = 0x1200;     // Input buffer
-pub const INPUT_BUF_SIZE: u16 = 0x00FF;     // Input buffer is 255 bytes
+// CPU Addresses
+const PROGRAM_START_ADDR:   u16 = 0x0200;     // Program code starts on page 2
+const CPU_RESET_START_ADDR: u16 = 0xFFFC;     // This is where the cpu looks for the address to start executing code at
 
+// Console Addresses
+pub const OUTPUT_BUF_ADDR:  u16 = 0x1100;     // Output buffer -- Put values to be printed at this location!
+pub const INPUT_BUF_ADDR:   u16 = 0x1200;     // Input buffer
+pub const INPUT_BUF_SIZE:   u16 = 0x00FF;     // Input buffer is 255 bytes
 pub const CONSOLE_FLAGS_ADDR:   u16 = 0x009A; // Grouping all of the console flags into a single byte
-pub const PRINT_BYTE_FLAG:      u8 = 0x01;    // Then set one of these flags to trigger the print
-pub const PRINT_STR_FLAG:       u8 = 0x02;    //      and indicate what type is being printed.
-pub const READ_LINE_FLAG:       u8 = 0x04;    // Set this flag to request user input from the keyboard
-pub const READ_OVERFLOW_FLAG:   u8 = 0x08;    // This flag is set after reading input if there is too much input for the buffer
+
+// Console Flag Masks
+pub const PRINT_BYTE_FLAG:      u8 = 0x01;    // Trigger printing a single byte
+pub const PRINT_STR_FLAG:       u8 = 0x02;    // Trigger printing a string (continues printing bytes until a null byte is encountered)
+pub const READ_LINE_FLAG:       u8 = 0x10;    // Set this flag to request user input from the keyboard
+pub const READ_OVERFLOW_FLAG:   u8 = 0x20;    // This flag is set after reading input if there is too much input for the buffer
 
 /////////////////////////////////////////////////////////////////////
 //				BUS
 /////////////////////////////////////////////////////////////////////
+
 use re6502::r6502::{R6502, Bus, Flags};
+
+// The Bus is how you connect other components to the RE6502 cpu.
+// At minimium the read() and write() traits must be implement for the Bus.
+// The following is a very basic Test Bus implementation.
+
 struct TBus
 {
     memory: [u8; 64 * 1024]
@@ -128,10 +138,7 @@ impl Console
 
             // Make sure the string will fit in the input buffer
             if (buffer.len() + 1) as u16 >= INPUT_BUF_SIZE
-            {
-                // TODO: Change this to set an error flag instead of printing. This way
-                //          the program can detect and handle these errors.
-                
+            {                
                 // reset the read flag and set the overflow flag
                 value &= !(READ_LINE_FLAG);
                 value |= READ_OVERFLOW_FLAG;
@@ -158,25 +165,9 @@ impl Console
     }
 }
 
-//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-//				CONSOLE INPUT
-//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-
-
-struct InputConsole {}
-
-impl InputConsole
-{
-    
-}
-
-
-
 /////////////////////////////////////////////////////////////////////
 //				MACHINE
 /////////////////////////////////////////////////////////////////////
-
-
 
 pub struct TestMachine
 {

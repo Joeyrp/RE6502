@@ -1,6 +1,6 @@
 
 ; echo example - takes input and then prints it back out
-; This is for testing the InputConsole of the Simple Test Machine
+; This is for testing input of the Simple Test Machine
 ; by Joey Pollack
 
 ; assemble with win2c64 (or lin2c64, or mac2c64) using the -R option
@@ -12,7 +12,7 @@ con_out         .equ    $1100   ; console output buffer address
 con_in          .equ    $1200   ; console input buffer address
 con_flags       .equ    $009A   ; console flags address
 prt_str_flag    .equ    $0002   ; print string flag
-prmp_input_flag .equ 	$0004   ; prompt for input flag
+prmp_input_flag .equ 	$0010   ; prompt for input flag
 
 ; MAIN
 main    .org   $0200   ; program load address for the Simple Test Machine
