@@ -1,6 +1,6 @@
 
 ; echo example - takes input and then prints it back out
-; This is for testing input of the Simple Test Machine
+; This is for testing I/O of the Simple Test Machine
 ; by Joey Pollack
 
 ; assemble with win2c64 (or lin2c64, or mac2c64) using the -R option

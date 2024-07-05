@@ -132,33 +132,37 @@ impl Console
         let mut value = bus.read(CONSOLE_FLAGS_ADDR);
         if (value & READ_LINE_FLAG) != 0
         {
+            // reset the flag
+            value &= !(READ_LINE_FLAG);
+
             let mut buffer = String::new();
             let stdin = io::stdin();
             stdin.read_line(&mut buffer).expect("Failed to read input from the console");
 
             // Make sure the string will fit in the input buffer
             if (buffer.len() + 1) as u16 >= INPUT_BUF_SIZE
-            {                
-                // reset the read flag and set the overflow flag
-                value &= !(READ_LINE_FLAG);
+            { 
+                // The input is too large for the buffer so
+                //  set the overflow flag
                 value |= READ_OVERFLOW_FLAG;
-                bus.write(CONSOLE_FLAGS_ADDR, value);
-
-                println!("ERROR: Console cannot store input string into memory, string is too large");
-                return;
             }
 
             // Store input in the input buffer
             for (i, byte) in buffer.chars().enumerate()
             {
+                // Truncate the input if it's too large for the buffer
+                if i as u16 >= INPUT_BUF_SIZE
+                {
+                    break;
+                }
+
                 bus.write(INPUT_BUF_ADDR + (i as u16), byte as u8);
             }
 
             // Add the null byte to the end
             bus.write(INPUT_BUF_ADDR + buffer.len() as u16, 0);
 
-            // reset the flag
-            value &= !(READ_LINE_FLAG);
+            // store the flags back into memory
             bus.write(CONSOLE_FLAGS_ADDR, value);
 
         }
